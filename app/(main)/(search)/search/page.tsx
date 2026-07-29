@@ -1,3 +1,5 @@
-export default function Search() {
-    return 'ad'
+import SearchFilters from "@/components/search-filters";
+
+export default function SearchPage() {
+  return <SearchFilters />
 }
