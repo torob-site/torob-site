@@ -13,7 +13,6 @@ import {
 } from "recharts";
 import { Maximize2, X } from "lucide-react";
 
-// ─── Dark Mode Detector ────────────────────────────────
 
 function useIsDark() {
   const [isDark, setIsDark] = useState(false);
@@ -34,8 +33,6 @@ function useIsDark() {
   return isDark;
 }
 
-// ─── Types & Data ──────────────────────────────────────
-
 interface PriceEntry {
   val: number;
   i: number;
@@ -44,83 +41,12 @@ interface PriceEntry {
 interface DataSet {
   label: string;
   entries: PriceEntry[];
-  color: string;
 }
 
 interface PriceData {
   labels: string[];
   dataSets: DataSet[];
 }
-
-const rawData: PriceData = {
-  labels: [
-    "۳ خرداد ۱۴۰۳", "۹ شهریور ۱۴۰۳", "۲۷ بهمن ۱۴۰۳", "۸ اسفند ۱۴۰۳", "۱۹ اسفند ۱۴۰۳",
-    "۳۰ اسفند ۱۴۰۳", "۱۱ فروردین ۱۴۰۴", "۲۲ فروردین ۱۴۰۴", "۲ اردیبهشت ۱۴۰۴", "۱۳ اردیبهشت ۱۴۰۴",
-    "۲۴ اردیبهشت ۱۴۰۴", "۴ خرداد ۱۴۰۴", "۱۵ خرداد ۱۴۰۴", "۲۶ خرداد ۱۴۰۴", "۶ تیر ۱۴۰۴",
-    "۱۷ تیر ۱۴۰۴", "۲۸ تیر ۱۴۰۴", "۸ مرداد ۱۴۰۴", "۱۹ مرداد ۱۴۰۴", "۳۰ مرداد ۱۴۰۴",
-    "۱۰ شهریور ۱۴۰۴", "۲۱ شهریور ۱۴۰۴", "۲ مهر ۱۴۰۴", "۱۳ مهر ۱۴۰۴", "۲۴ مهر ۱۴۰۴",
-    "۵ آبان ۱۴۰۴", "۱۶ آبان ۱۴۰۴", "۲۷ آبان ۱۴۰۴", "۸ آذر ۱۴۰۴", "۱۹ آذر ۱۴۰۴",
-    "۳۰ آذر ۱۴۰۴", "۱۱ دی ۱۴۰۴", "۲۲ دی ۱۴۰۴", "۳ بهمن ۱۴۰۴", "۱۴ بهمن ۱۴۰۴",
-    "۲۵ بهمن ۱۴۰۴", "۶ اسفند ۱۴۰۴", "۱۷ اسفند ۱۴۰۴", "۲۸ اسفند ۱۴۰۴", "۱۰ فروردین ۱۴۰۵",
-    "۲۱ فروردین ۱۴۰۵", "۱ اردیبهشت ۱۴۰۵", "۱۲ اردیبهشت ۱۴۰۵", "۲۳ اردیبهشت ۱۴۰۵", "۳ خرداد ۱۴۰۵",
-    "۱۴ خرداد ۱۴۰۵", "۲۵ خرداد ۱۴۰۵", "۵ تیر ۱۴۰۵", "۱۶ تیر ۱۴۰۵", "۲۷ تیر ۱۴۰۵"
-  ],
-  dataSets: [
-    {
-      label: "میانگین قیمت",
-      color: "#00C853",
-      entries: [
-        { val: 59000, i: 0 }, { val: 59000, i: 1 }, { val: 15267416, i: 2 },
-        { val: 14285305, i: 3 }, { val: 13980642, i: 4 }, { val: 16119826, i: 5 },
-        { val: 16791872, i: 6 }, { val: 16676361, i: 7 }, { val: 14523475, i: 8 },
-        { val: 15447763, i: 9 }, { val: 15534777, i: 10 }, { val: 14840902, i: 11 },
-        { val: 14478008, i: 12 }, { val: 15797554, i: 13 }, { val: 15394357, i: 14 },
-        { val: 15185357, i: 15 }, { val: 15283817, i: 16 }, { val: 15365729, i: 17 },
-        { val: 15416123, i: 18 }, { val: 15503115, i: 19 }, { val: 17067953, i: 20 },
-        { val: 16656115, i: 21 }, { val: 18177562, i: 22 }, { val: 19325981, i: 23 },
-        { val: 18434949, i: 24 }, { val: 18054800, i: 25 }, { val: 18010426, i: 26 },
-        { val: 18057465, i: 27 }, { val: 18668529, i: 28 }, { val: 19958987, i: 29 },
-        { val: 21977521, i: 30 }, { val: 25447367, i: 31 }, { val: 26942889, i: 32 },
-        { val: 26517464, i: 33 }, { val: 26816010, i: 34 }, { val: 26866706, i: 35 },
-        { val: 26665257, i: 36 }, { val: 26970935, i: 37 }, { val: 26924554, i: 38 },
-        { val: 28836033, i: 39 }, { val: 32800712, i: 40 }, { val: 33154137, i: 41 },
-        { val: 38202911, i: 42 }, { val: 37316430, i: 43 }, { val: 37728241, i: 44 },
-        { val: 37723090, i: 45 }, { val: 37630003, i: 46 }, { val: 37212821, i: 47 },
-        { val: 38985759, i: 48 }, { val: 46476011, i: 49 }
-      ]
-    },
-    {
-      label: "کمترین قیمت",
-      color: "#0091EA",
-      entries: [
-        { val: 59000, i: 0 }, { val: 59000, i: 1 }, { val: 14738000, i: 2 },
-        { val: 13628000, i: 3 }, { val: 12948000, i: 4 }, { val: 13040000, i: 5 },
-        { val: 13040000, i: 6 }, { val: 13766000, i: 7 }, { val: 12990000, i: 8 },
-        { val: 13766000, i: 9 }, { val: 13766000, i: 10 }, { val: 13766000, i: 11 },
-        { val: 13599000, i: 12 }, { val: 13350000, i: 13 }, { val: 13766000, i: 14 },
-        { val: 13766000, i: 15 }, { val: 13766000, i: 16 }, { val: 13766000, i: 17 },
-        { val: 14300000, i: 18 }, { val: 14300000, i: 19 }, { val: 14300000, i: 20 },
-        { val: 14300000, i: 21 }, { val: 14650000, i: 22 }, { val: 14650000, i: 23 },
-        { val: 14650000, i: 24 }, { val: 14650000, i: 25 }, { val: 14650000, i: 26 },
-        { val: 14650000, i: 27 }, { val: 14650000, i: 28 }, { val: 14650000, i: 29 },
-        { val: 14650000, i: 30 }, { val: 14650000, i: 31 }, { val: 15189000, i: 32 },
-        { val: 15189000, i: 33 }, { val: 15189000, i: 34 }, { val: 15189000, i: 35 },
-        { val: 15189000, i: 36 }, { val: 15189000, i: 37 }, { val: 15189000, i: 38 },
-        { val: 15189000, i: 39 }, { val: 15189000, i: 40 }, { val: 15189000, i: 41 },
-        { val: 15189000, i: 42 }, { val: 15189000, i: 43 }, { val: 15189000, i: 44 },
-        { val: 15189000, i: 45 }, { val: 15189000, i: 46 }, { val: 16200000, i: 47 },
-        { val: 16200000, i: 48 }, { val: 16200000, i: 49 }
-      ]
-    }
-  ]
-};
-
-const chartData = rawData.labels.map((label, index) => ({
-  name: label,
-  avg: rawData.dataSets[0].entries[index].val,
-  min: rawData.dataSets[1].entries[index].val,
-  index,
-}));
 
 function formatPrice(price: number): string {
   return price.toLocaleString("fa-IR");
@@ -150,11 +76,10 @@ function CustomTooltip({ active, payload, label, isDark }: CustomTooltipProps) {
 
   return (
     <div
-      className={`rounded-lg p-3 text-sm border shadow-xl ${
-        isDark
-          ? "bg-[#0f172a] border-gray-700"
-          : "bg-white border-gray-200"
-      }`}
+      className={`rounded-lg p-3 text-sm border shadow-xl ${isDark
+        ? "bg-[#0f172a] border-gray-700"
+        : "bg-white border-gray-200"
+        }`}
     >
       <div className={`mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
         {label}
@@ -180,12 +105,14 @@ function CustomTooltip({ active, payload, label, isDark }: CustomTooltipProps) {
 }
 
 function ChartContent({
+  chartData,
   viewMode,
   setViewMode,
   isFullscreen,
   onToggleFullscreen,
   isDark,
 }: {
+  chartData: Array<{ name: string; avg: number; min: number; index: number }>;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   isFullscreen: boolean;
@@ -197,10 +124,10 @@ function ChartContent({
 
   const allVisiblePrices = useMemo(() => {
     const prices: number[] = [];
-    if (showAvg) prices.push(...rawData.dataSets[0].entries.map((e) => e.val));
-    if (showMin) prices.push(...rawData.dataSets[1].entries.map((e) => e.val));
+    if (showAvg) prices.push(...chartData.map((d) => d.avg));
+    if (showMin) prices.push(...chartData.map((d) => d.min));
     return prices;
-  }, [showAvg, showMin]);
+  }, [showAvg, showMin, chartData]);
 
   const minPrice = Math.min(...allVisiblePrices);
   const maxPrice = Math.max(...allVisiblePrices);
@@ -225,36 +152,33 @@ function ChartContent({
         </button>
       </div>
 
-      {/* Toggle Buttons — با background پررنگ solid برای active */}
+      {/* Toggle Buttons */}
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setViewMode("both")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-            viewMode === "both"
-              ? "bg-gray-700 text-white"
-              : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${viewMode === "both"
+            ? "bg-gray-700 text-white"
+            : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
+            }`}
         >
           همه
         </button>
         <button
           onClick={() => setViewMode("avg")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
-            viewMode === "avg"
-              ? "bg-green-600 text-white"
-              : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${viewMode === "avg"
+            ? "bg-green-600 text-white"
+            : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
+            }`}
         >
           <span className={`w-2 h-2 rounded-full ${viewMode === "avg" ? "bg-white" : "bg-green-500"}`} />
           میانگین قیمت
         </button>
         <button
           onClick={() => setViewMode("min")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${
-            viewMode === "min"
-              ? "bg-blue-600 text-white"
-              : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
-          }`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 ${viewMode === "min"
+            ? "bg-blue-600 text-white"
+            : "dark:bg-[#0f172a] bg-[#f3f4f6] dark:text-[#9ca3af] text-[#6b7280] dark:hover:text-white hover:text-gray-900"
+            }`}
         >
           <span className={`w-2 h-2 rounded-full ${viewMode === "min" ? "bg-white" : "bg-blue-500"}`} />
           کمترین قیمت
@@ -368,18 +292,32 @@ function ChartContent({
 
 // ─── Main Export ───────────────────────────────────────
 
-export default function PriceChart() {
+interface PriceChartProps {
+  priceData: PriceData;
+}
+
+export default function PriceChart({ priceData }: PriceChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("both");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isDark = useIsDark();
 
   const toggleFullscreen = () => setIsFullscreen((prev) => !prev);
 
+  const data = priceData;
+
+  const chartData = data?.labels?.map((label, index) => ({
+    name: label,
+    avg: data.dataSets[0].entries[index].val,
+    min: data.dataSets[1].entries[index].val,
+    index,
+  }));
+
   if (isFullscreen) {
     return (
       <div className="fixed inset-0 z-50 bg-black/80 h-screen flex items-center justify-center">
         <div className="dark:bg-[#1e293b] bg-white rounded-2xl p-6 w-[95vw] h-[90vh] flex flex-col">
           <ChartContent
+            chartData={chartData}
             viewMode={viewMode}
             setViewMode={setViewMode}
             isFullscreen={true}
@@ -394,6 +332,7 @@ export default function PriceChart() {
   return (
     <div className="dark:bg-[#1e293b] bg-white rounded-2xl p-6">
       <ChartContent
+        chartData={chartData}
         viewMode={viewMode}
         setViewMode={setViewMode}
         isFullscreen={false}
