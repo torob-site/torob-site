@@ -1,15 +1,41 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo, useCallback, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  Suspense,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Check, ChevronDown, ChevronUp, MapPin, Search, XIcon } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Search,
+  XIcon,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useGetUser, useGetUserAlerts, useGetUserFavorites, useSearch } from "@/lib/apis";
+import {
+  useGetUser,
+  useGetUserAlerts,
+  useGetUserFavorites,
+  useSearch,
+} from "@/lib/apis";
 import ProductCard from "@/components/product-card";
 import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "./ui/breadcrumb";
 import { Badge } from "./ui/badge";
 
 interface ActiveFilters {
@@ -36,7 +62,9 @@ interface ApiFilter {
   items?: ApiFilterItem[];
 }
 
-// ─── Dynamic Top Filter Renderers ──────────────────────
+// ─────────────────────────────────────────────
+// Dropdown Filter
+// ─────────────────────────────────────────────
 
 function DropdownFilter({
   filter,
@@ -48,7 +76,10 @@ function DropdownFilter({
   onChange: (slug: string, value: string | null) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = filter.items?.find((o) => String(o.value || o.slug) === selectedValue);
+
+  const selected = filter.items?.find(
+    (o) => String(o.value || o.slug) === selectedValue
+  );
 
   return (
     <div className="relative">
@@ -56,22 +87,32 @@ function DropdownFilter({
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#1e293b] dark:text-gray-300 dark:hover:text-white transition"
       >
-        <ChevronDown className={`w-4 h-4 transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-4 h-4 transition ${open ? "rotate-180" : ""}`}
+        />
         {selected?.name || filter.badge_text || filter.title}
       </button>
+
       {open && (
         <div className="absolute top-full right-0 mt-2 bg-[#ffffff] dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 min-w-[160px]">
           {filter.items?.map((item) => {
             const value = String(item.value || item.slug);
+
             return (
               <button
                 key={value}
                 onClick={() => {
-                  onChange(filter.slug, selectedValue === value ? null : value);
+                  onChange(
+                    filter.slug,
+                    selectedValue === value ? null : value
+                  );
                   setOpen(false);
                 }}
-                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${selectedValue === value ? "text-blue-500 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"
-                  }`}
+                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${
+                  selectedValue === value
+                    ? "text-blue-500 dark:text-blue-400"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
               >
                 {item.name || value}
               </button>
@@ -82,6 +123,10 @@ function DropdownFilter({
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Toggle Filter
+// ─────────────────────────────────────────────
 
 function ToggleFilter({
   filter,
@@ -94,7 +139,10 @@ function ToggleFilter({
 }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer">
-      <span className="text-sm text-gray-600 dark:text-gray-300">{filter.title}</span>
+      <span className="text-sm text-gray-600 dark:text-gray-300">
+        {filter.title}
+      </span>
+
       <Switch
         dir="ltr"
         checked={checked}
@@ -104,6 +152,10 @@ function ToggleFilter({
     </label>
   );
 }
+
+// ─────────────────────────────────────────────
+// Toggle Group Filter
+// ─────────────────────────────────────────────
 
 function ToggleGroupFilter({
   filter,
@@ -119,22 +171,39 @@ function ToggleGroupFilter({
       {filter.items?.map((item, idx) => {
         const value = String(item.value || item.slug);
         const isSelected = selectedValue === value;
+
         return (
           <div key={value} className="flex items-center gap-2">
-            {idx > 0 && <span className="text-sm text-gray-600 dark:text-gray-300 mr-4">{item.name || value}</span>}
+            {idx > 0 && (
+              <span className="text-sm text-gray-600 dark:text-gray-300 mr-4">
+                {item.name || value}
+              </span>
+            )}
+
             <Switch
               dir="ltr"
               checked={isSelected}
-              onCheckedChange={(v) => onChange(filter.slug, v ? value : null)}
+              onCheckedChange={(v) =>
+                onChange(filter.slug, v ? value : null)
+              }
               className="data-[state=checked]:bg-blue-500"
             />
-            {idx === 0 && <span className="text-sm text-gray-600 dark:text-gray-300">{item.name || value}</span>}
+
+            {idx === 0 && (
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {item.name || value}
+              </span>
+            )}
           </div>
         );
       })}
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Toggle Icon Filter
+// ─────────────────────────────────────────────
 
 function ToggleIconFilter({
   filter,
@@ -149,10 +218,15 @@ function ToggleIconFilter({
 
   return (
     <label className="flex items-center gap-2 cursor-pointer">
-      {IconComponent && <IconComponent className="w-4 h-4 text-gray-400" />}
-      <span className="text-sm text-gray-600 dark:text-gray-300">{filter.title}</span>
+      {IconComponent && (
+        <IconComponent className="w-4 h-4 text-gray-400" />
+      )}
+
+      <span className="text-sm text-gray-600 dark:text-gray-300">
+        {filter.title}
+      </span>
+
       <Switch
-        id="switch-focus-mode"
         dir="ltr"
         checked={checked}
         onCheckedChange={(v) => onChange(filter.slug, v)}
@@ -162,7 +236,9 @@ function ToggleIconFilter({
   );
 }
 
-// ─── Dynamic Top Filter Bar from API ───────────────────
+// ─────────────────────────────────────────────
+// Top Filter Bar
+// ─────────────────────────────────────────────
 
 function TopFilterBar({
   filters,
@@ -176,8 +252,12 @@ function TopFilterBar({
   if (!filters || filters.length === 0) return null;
 
   const renderFilter = (filter: ApiFilter, index: number) => {
-    const separator = index > 0 ? <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" /> : null;
-    let content: React.ReactNode;
+    const separator =
+      index > 0 ? (
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
+      ) : null;
+
+    let content: React.ReactNode = null;
 
     switch (filter.type) {
       case "dropdown":
@@ -189,6 +269,7 @@ function TopFilterBar({
           />
         );
         break;
+
       case "toggle":
         content = (
           <ToggleFilter
@@ -198,6 +279,7 @@ function TopFilterBar({
           />
         );
         break;
+
       case "toggle-group":
         content = (
           <ToggleGroupFilter
@@ -207,6 +289,7 @@ function TopFilterBar({
           />
         );
         break;
+
       case "toggle-icon":
         content = (
           <ToggleIconFilter
@@ -216,8 +299,6 @@ function TopFilterBar({
           />
         );
         break;
-      default:
-        content = null;
     }
 
     return (
@@ -235,7 +316,9 @@ function TopFilterBar({
   );
 }
 
-// ─── Dynamic Sidebar Filter from API ───────────────────
+// ─────────────────────────────────────────────
+// Dynamic Sidebar Filter
+// ─────────────────────────────────────────────
 
 function DynamicFilterGroup({
   filter,
@@ -249,7 +332,9 @@ function DynamicFilterGroup({
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  const isSingle = filter.type === "single_choice" || filter.type === "dropdown";
+  const isSingle =
+    filter.type === "single_choice" || filter.type === "dropdown";
+
   const limit = 10;
   const items = filter.items || [];
   const displayItems = showAll ? items : items.slice(0, limit);
@@ -276,7 +361,12 @@ function DynamicFilterGroup({
         className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition"
       >
         <span>{filter.title}</span>
-        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />}
+
+        {expanded ? (
+          <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        )}
       </button>
 
       {expanded && (
@@ -287,28 +377,33 @@ function DynamicFilterGroup({
 
             return (
               <label
-                key={idx}
+                key={`${filter.slug}-${idx}`}
                 className="flex items-center justify-between py-1.5 px-1 cursor-pointer group"
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex items-center justify-center transition ${isSingle
-                      ? `w-4 h-4 rounded-full border ${isSelected(value) ? "border-blue-500" : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
-                      }`
-                      : `w-4 h-4 rounded border ${isSelected(value) ? "bg-blue-500 border-blue-500" : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
-                      }`
-                      }`}
+                    className={`flex items-center justify-center transition ${
+                      isSingle
+                        ? `w-4 h-4 rounded-full border ${
+                            isSelected(value)
+                              ? "border-blue-500"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
+                          }`
+                        : `w-4 h-4 rounded border ${
+                            isSelected(value)
+                              ? "bg-blue-500 border-blue-500"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
+                          }`
+                    }`}
                   >
-                    {isSelected(value) && (
-                      <>
-                        {isSingle ? (
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        ) : (
-                          <Check className="w-3 h-3 text-white" />
-                        )}
-                      </>
-                    )}
+                    {isSelected(value) &&
+                      (isSingle ? (
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      ) : (
+                        <Check className="w-3 h-3 text-white" />
+                      ))}
                   </div>
+
                   <input
                     type={isSingle ? "radio" : "checkbox"}
                     name={filter.slug}
@@ -316,6 +411,7 @@ function DynamicFilterGroup({
                     checked={isSelected(value)}
                     onChange={() => handleSelect(value)}
                   />
+
                   <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#1e293b] dark:group-hover:text-white transition">
                     {label}
                   </span>
@@ -327,15 +423,16 @@ function DynamicFilterGroup({
           {hasMore && !showAll && (
             <button
               onClick={() => setShowAll(true)}
-              className="w-full text-right py-2 px-1 text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition"
+              className="w-full text-right py-2 px-1 text-sm text-blue-500 dark:text-blue-400"
             >
               مشاهده بیشتر
             </button>
           )}
+
           {showAll && hasMore && (
             <button
               onClick={() => setShowAll(false)}
-              className="w-full text-right py-2 px-1 text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition"
+              className="w-full text-right py-2 px-1 text-sm text-blue-500 dark:text-blue-400"
             >
               مشاهده کمتر
             </button>
@@ -345,6 +442,10 @@ function DynamicFilterGroup({
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Suggested Categories
+// ─────────────────────────────────────────────
 
 function SuggestedCategories({
   categories,
@@ -359,9 +460,10 @@ function SuggestedCategories({
     <div className="border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition"
+        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
       >
         <span>دسته‌بندی‌های پیشنهادی</span>
+
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         ) : (
@@ -386,7 +488,9 @@ function SuggestedCategories({
   );
 }
 
-// ─── Price Filter ──────────────────────────────────────
+// ─────────────────────────────────────────────
+// Price Filter
+// ─────────────────────────────────────────────
 
 function PriceFilter({
   value,
@@ -409,59 +513,83 @@ function PriceFilter({
     <div className="border-b border-gray-200 dark:border-gray-800">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition"
+        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
       >
         <span>قیمت</span>
-        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />}
+
+        {expanded ? (
+          <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        )}
       </button>
 
       {expanded && (
         <div className="pb-4 space-y-3">
           {minPrice !== undefined && maxPrice !== undefined && (
             <div className="text-xs text-gray-500 px-1">
-              رنج قیمت: {minPrice.toLocaleString("fa-IR")} - {maxPrice.toLocaleString("fa-IR")} تومان
+              رنج قیمت: {minPrice.toLocaleString("fa-IR")} -{" "}
+              {maxPrice.toLocaleString("fa-IR")} تومان
             </div>
           )}
+
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">از</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
+              از
+            </span>
+
             <div className="relative flex-1">
               <Input
                 type="text"
                 inputMode="numeric"
                 placeholder={minPrice?.toString()}
                 value={value.min}
-                onChange={(e) => onChange({ ...value, min: e.target.value })}
-                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10 text-[#1e293b] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                onChange={(e) =>
+                  onChange({ ...value, min: e.target.value })
+                }
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">تومان</span>
+
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">تا</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
+              تا
+            </span>
+
             <div className="relative flex-1">
               <Input
                 type="text"
                 inputMode="numeric"
                 placeholder={maxPrice?.toString()}
                 value={value.max}
-                onChange={(e) => onChange({ ...value, max: e.target.value })}
-                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10 text-[#1e293b] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                onChange={(e) =>
+                  onChange({ ...value, max: e.target.value })
+                }
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">تومان</span>
+
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
             </div>
           </div>
 
           <div className="flex gap-2 pt-1">
             <button
               onClick={onClear}
-              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
             >
               حذف
             </button>
+
             <button
               onClick={onApply}
-              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition"
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
             >
               اعمال فیلتر
             </button>
@@ -472,7 +600,136 @@ function PriceFilter({
   );
 }
 
-// ─── Sidebar Filters Component ─────────────────────────
+// ─────────────────────────────────────────────
+// Search In Results
+// ─────────────────────────────────────────────
+
+function SearchInResults({
+  value,
+  onChange,
+  onApply,
+  onClear,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  onApply: () => void;
+  onClear: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div className="border-b border-gray-200 dark:border-gray-800">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between py-4 px-1 text-sm font-medium"
+      >
+        <span>جستجو در نتایج</span>
+
+        {expanded ? (
+          <ChevronUp className="w-4 h-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        )}
+      </button>
+
+      {expanded && (
+        <div className="pb-4 space-y-3">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="جستجو در نتایج..."
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onApply();
+              }}
+              className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-right pr-10 h-10"
+            />
+
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={onClear}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
+            >
+              حذف
+            </button>
+
+            <button
+              onClick={onApply}
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
+            >
+              اعمال
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Price List
+// ─────────────────────────────────────────────
+
+function PriceListLink({
+  title,
+  href,
+}: {
+  title?: string;
+  href?: string;
+}) {
+  if (!title) return null;
+
+  return (
+    <div className="border-b border-gray-200 dark:border-gray-800 py-4">
+      <Link
+        href={href || "#"}
+        className="block text-sm font-medium text-[#1e293b] dark:text-white hover:text-[#d73948]"
+      >
+        لیست قیمت {title}
+      </Link>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Popular Categories
+// ─────────────────────────────────────────────
+
+function PopularCategories({
+  categories,
+}: {
+  categories: { id: number; title: string; url: string }[];
+}) {
+  if (!categories || categories.length === 0) return null;
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-bold text-[#1e293b] dark:text-white mb-3">
+        دسته‌بندی‌های پربازدید
+      </h3>
+
+      <div className="flex flex-col gap-2">
+        {categories.map((cat) => (
+          <Link
+            href={`/browse/${cat.id}/${cat.url}`}
+            key={cat.id}
+            className="text-sm text-gray-600 dark:text-gray-300 hover:text-[#d73948]"
+          >
+            {cat.title}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Sidebar
+// ─────────────────────────────────────────────
 
 function SidebarFilters({
   apiFilters,
@@ -484,7 +741,14 @@ function SidebarFilters({
   onPriceClear,
   minPrice,
   maxPrice,
-  suggestedCategories
+  suggestedCategories,
+  isBrowsePage,
+  searchInResults,
+  onSearchInResultsChange,
+  onSearchInResultsApply,
+  onSearchInResultsClear,
+  title,
+  popularCategories,
 }: {
   apiFilters: ApiFilter[];
   activeFilters: ActiveFilters;
@@ -496,6 +760,13 @@ function SidebarFilters({
   minPrice?: number;
   maxPrice?: number;
   suggestedCategories?: { id: number; title: string; url: string }[];
+  isBrowsePage: boolean;
+  searchInResults: string;
+  onSearchInResultsChange: (val: string) => void;
+  onSearchInResultsApply: () => void;
+  onSearchInResultsClear: () => void;
+  title?: string;
+  popularCategories?: { id: number; title: string; url: string }[];
 }) {
   return (
     <div>
@@ -505,7 +776,9 @@ function SidebarFilters({
             key={filter.slug}
             filter={filter}
             selected={activeFilters[filter.slug] || []}
-            onChange={(slug, value) => onFilterChange(slug, value)}
+            onChange={(slug, value) =>
+              onFilterChange(slug, value)
+            }
           />
         ))}
 
@@ -519,17 +792,49 @@ function SidebarFilters({
           minPrice={minPrice}
           maxPrice={maxPrice}
         />
+
+        {isBrowsePage && (
+          <>
+            <SearchInResults
+              value={searchInResults}
+              onChange={onSearchInResultsChange}
+              onApply={onSearchInResultsApply}
+              onClear={onSearchInResultsClear}
+            />
+
+            <PriceListLink title={title} href="" />
+
+            <PopularCategories
+              categories={popularCategories || []}
+            />
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-// ─── Product Results Component ─────────────────────────
+// ─────────────────────────────────────────────
+// Product Results
+// ─────────────────────────────────────────────
 
-function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }) {
+function ProductResults({
+  data,
+  isLoading,
+}: {
+  data: any[];
+  isLoading: boolean;
+}) {
   const { data: user } = useGetUser();
-  const { data: favoriteIds = [] } = useGetUserFavorites(true, { enabled: !!user?.phone, });
-  const { data: alertIds = [] } = useGetUserAlerts(true, { enabled: !!user?.phone, });
+
+  const { data: favoriteIds = [] } = useGetUserFavorites(true, {
+    enabled: !!user?.phone,
+  });
+
+  const { data: alertIds = [] } = useGetUserAlerts(true, {
+    enabled: !!user?.phone,
+  });
+
   const favoriteSet = new Set(favoriteIds);
   const alertSet = new Set(alertIds);
 
@@ -546,26 +851,31 @@ function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }
       <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
         <Search className="w-16 h-16 mb-4 opacity-30" />
         <p className="text-lg">نتیجه‌ای پیدا نشد</p>
-        <p className="text-sm mt-2">لطفاً عبارت دیگری را جستجو کنید</p>
+        <p className="text-sm mt-2">
+          لطفاً عبارت دیگری را جستجو کنید
+        </p>
       </div>
     );
   }
+
   const products = data.map((product) => ({
     ...product,
     is_favorite: favoriteSet.has(product.id),
     is_alert: alertSet.has(product.id),
   }));
+
   return (
     <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid-cols-2 gap-6">
       {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-        />
+        <ProductCard key={product.id} product={product} />
       ))}
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Shop Header
+// ─────────────────────────────────────────────
 
 function ShopHeader({ shop }: { shop: any }) {
   const router = useRouter();
@@ -575,12 +885,17 @@ function ShopHeader({ shop }: { shop: any }) {
 
   const doSearch = () => {
     if (!query.trim()) return;
+
     router.push(
-      `/shop/${shop.id}/${shop.shop_name}/محصولات/?q=${encodeURIComponent(query.trim())}`
+      `/shop/${shop.id}/${shop.shop_name}/محصولات/?q=${encodeURIComponent(
+        query.trim()
+      )}`
     );
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Enter") doSearch();
   };
 
@@ -595,16 +910,18 @@ function ShopHeader({ shop }: { shop: any }) {
               className="w-14 h-14 rounded-xl object-cover bg-gray-100 dark:bg-gray-800 shrink-0"
             />
           )}
+
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-[#1e293b] dark:text-white truncate">
               {shop.shop_name}
             </h2>
+
             {shop.domain && (
               <a
                 href={`https://${shop.domain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition"
+                className="text-sm text-blue-500 dark:text-blue-400"
               >
                 {shop.domain}
               </a>
@@ -614,19 +931,28 @@ function ShopHeader({ shop }: { shop: any }) {
       </div>
 
       <div className="flex bg-gray-100 dark:bg-[#212b36] py-3 rounded-lg px-3 items-center gap-3">
-        <Search onClick={doSearch} className="w-5 h-5 cursor-pointer" color="#f43f5e" />
+        <Search
+          onClick={doSearch}
+          className="w-5 h-5 cursor-pointer"
+          color="#f43f5e"
+        />
+
         <input
           type="text"
           placeholder="جستجو در محصولات این فروشگاه..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent border-0 text-sm text-[#1e293b] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-0"
+          className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0"
         />
       </div>
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Breadcrumb
+// ─────────────────────────────────────────────
 
 function CategoryBreadcrumb({
   categories,
@@ -640,7 +966,10 @@ function CategoryBreadcrumb({
   if (!categories || categories.length === 0) return null;
 
   return (
-    <Breadcrumb dir="rtl" className="border-b border-gray-200 dark:border-gray-800 py-2">
+    <Breadcrumb
+      dir="rtl"
+      className="border-b border-gray-200 dark:border-gray-800 py-2"
+    >
       <BreadcrumbList>
         {categories.map((category, index) => {
           const isLast = index === categories.length - 1;
@@ -649,17 +978,19 @@ function CategoryBreadcrumb({
             <div key={category.id} className="flex items-center">
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage>
-                    {category.title}
-                  </BreadcrumbPage>
+                  <BreadcrumbPage>{category.title}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={`/browse/${category.id}/${category.url}`}>
+                  <BreadcrumbLink
+                    href={`/browse/${category.id}/${category.url}`}
+                  >
                     {category.title}
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
 
-              {!isLast && <BreadcrumbSeparator className="px-1 rotate-180" />}
+              {!isLast && (
+                <BreadcrumbSeparator className="px-1 rotate-180" />
+              )}
             </div>
           );
         })}
@@ -667,6 +998,10 @@ function CategoryBreadcrumb({
     </Breadcrumb>
   );
 }
+
+// ─────────────────────────────────────────────
+// Active Filter Badges
+// ─────────────────────────────────────────────
 
 function ActiveFilterBadges({
   filters,
@@ -685,7 +1020,8 @@ function ActiveFilterBadges({
         <Badge
           key={filter.slug}
           onClick={() => onClear(filter.slug)}
-          className="flex py-4 gap-3 items-center bg-gray-100 dark:bg-[#212b36] border border-gray-300 dark:border-white rounded-full px-3 text-[#1e293b] dark:text-white cursor-pointer">
+          className="flex py-4 gap-3 items-center bg-gray-100 dark:bg-[#212b36] border border-gray-300 dark:border-white rounded-full px-3 cursor-pointer"
+        >
           <span>{filter.badge_text}</span>
           <XIcon className="w-4 h-4" />
         </Badge>
@@ -694,25 +1030,36 @@ function ActiveFilterBadges({
   );
 }
 
+// ─────────────────────────────────────────────
+// Category Not Found
+// ─────────────────────────────────────────────
+
 function CategoryNotFound() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
       <Search className="w-16 h-16 mb-4 opacity-30" />
-      <p className="text-lg font-bold text-red-500 dark:text-red-400">
+
+      <p className="text-lg font-bold text-red-500">
         دسته‌بندی مورد نظر یافت نشد
       </p>
+
       <p className="text-sm mt-2">
         دسته‌بندی که به دنبال آن هستید وجود ندارد یا حذف شده است
       </p>
+
       <Link
         href="/"
-        className="mt-6 px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-white transition"
+        className="mt-6 px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
       >
         بازگشت به صفحه اصلی
       </Link>
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Search Content
+// ─────────────────────────────────────────────
 
 function SearchContent() {
   const router = useRouter();
@@ -722,258 +1069,662 @@ function SearchContent() {
   const isBrowsePage = pathname.startsWith("/browse");
   const isSearchPage = pathname.startsWith("/search");
 
-  // ─── Read initial values from URL ────────────────────
+  // ─────────────────────────────────────────
+  // Initial URL values
+  // ─────────────────────────────────────────
+
   const initialQuery = searchParams.get("query") || "";
   const initialPriceGt = searchParams.get("price_gt") || "";
   const initialPriceLt = searchParams.get("price_lt") || "";
+  const initialQ = isBrowsePage
+    ? searchParams.get("q") || ""
+    : "";
 
-  // ─── Search Query ────────────────────────────────────
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  // ─────────────────────────────────────────
+  // Helper: category id
+  // ─────────────────────────────────────────
 
-  // ─── Sidebar State ───────────────────────────────────
-  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({});
+  const getCategoryIdFromPath = useCallback(
+    (currentPathname: string) => {
+      const parts = currentPathname
+        .split("/")
+        .filter(Boolean);
 
-  const [priceRange, setPriceRange] = useState<PriceRange>({
-    min: initialPriceGt,
-    max: initialPriceLt,
-  });
-  const [appliedPrice, setAppliedPrice] = useState<PriceRange | null>(
-    initialPriceGt || initialPriceLt ? { min: initialPriceGt, max: initialPriceLt } : null
+      const browseIndex = parts.indexOf("browse");
+
+      if (browseIndex === -1) return null;
+
+      const ids = parts
+        .slice(browseIndex + 1)
+        .filter((part) => /^\d+$/.test(part));
+
+      return ids.length ? Number(ids[ids.length - 1]) : null;
+    },
+    []
   );
 
-  // ─── Top Filter State (dynamic from API) ─────────────
-  const [topFilterValues, setTopFilterValues] = useState<Record<string, string | boolean | null>>({});
+  // ─────────────────────────────────────────
+  // Read sidebar filters directly from URL
+  // ─────────────────────────────────────────
 
-  // ─── Initialization guard ────────────────────────────
-  const [isInitialized, setIsInitialized] = useState(false);
-  const isSyncingRef = useRef(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const initialActiveFilters = useMemo(() => {
+    const result: ActiveFilters = {};
+
+    searchParams.forEach((value, key) => {
+      if (key === "brand") {
+        result.brand = value
+          .split(",")
+          .filter(Boolean);
+        return;
+      }
+
+      if (key.startsWith("spec_")) {
+        const slug = key.replace(/^spec_/, "");
+
+        result[slug] = value
+          .split(",")
+          .filter(Boolean);
+      }
+    });
+
+    return result;
+  }, [searchParams]);
+
+  // ─────────────────────────────────────────
+  // Read top filters directly from URL
+  // ─────────────────────────────────────────
+
+  const RESERVED_PARAMS = useMemo(
+    () =>
+      new Set([
+        "query",
+        "q",
+        "price_gt",
+        "price_lt",
+        "page",
+        "sort",
+      ]),
+    []
+  );
+
+  const initialTopFilterValues = useMemo(() => {
+    const result: Record<
+      string,
+      string | boolean | null
+    > = {};
+
+    searchParams.forEach((value, key) => {
+      if (RESERVED_PARAMS.has(key)) return;
+      if (key === "brand") return;
+      if (key.startsWith("spec_")) return;
+
+      if (value === "true") {
+        result[key] = true;
+      } else if (value === "false") {
+        result[key] = false;
+      } else {
+        result[key] = value;
+      }
+    });
+
+    return result;
+  }, [searchParams, RESERVED_PARAMS]);
+
+  // ─────────────────────────────────────────
+  // States
+  // ─────────────────────────────────────────
+
+  const [searchQuery, setSearchQuery] =
+    useState(initialQuery);
+
+  const [activeFilters, setActiveFilters] =
+    useState<ActiveFilters>(initialActiveFilters);
+
+  const [priceRange, setPriceRange] =
+    useState<PriceRange>({
+      min: initialPriceGt,
+      max: initialPriceLt,
+    });
+
+  const [appliedPrice, setAppliedPrice] =
+    useState<PriceRange | null>(
+      initialPriceGt || initialPriceLt
+        ? {
+            min: initialPriceGt,
+            max: initialPriceLt,
+          }
+        : null
+    );
+
+  const [searchInResults, setSearchInResults] =
+    useState(initialQ);
+
+  const [appliedSearchInResults, setAppliedSearchInResults] =
+    useState<string | null>(initialQ || null);
+
+  const [topFilterValues, setTopFilterValues] =
+    useState<
+      Record<string, string | boolean | null>
+    >(initialTopFilterValues);
+
+  const sentinelRef =
+    useRef<HTMLDivElement>(null);
+
   const fetchNextPageRef = useRef<any>(null);
 
-  // ─── Build API Params with useMemo ───────────────────
-  const apiParams = useMemo(() => {
-    const params: Record<string, any> = {
-      query: searchQuery,
-    };
+  // ─────────────────────────────────────────
+  // Keep states synced with URL
+  // ─────────────────────────────────────────
 
-    if (isSearchPage && searchQuery) {
-      params.query = searchQuery;
+  useEffect(() => {
+    setSearchQuery(
+      isSearchPage
+        ? searchParams.get("query") || ""
+        : ""
+    );
+  }, [searchParams, isSearchPage]);
+
+  useEffect(() => {
+    setActiveFilters(initialActiveFilters);
+  }, [initialActiveFilters]);
+
+  useEffect(() => {
+    setTopFilterValues(initialTopFilterValues);
+  }, [initialTopFilterValues]);
+
+  useEffect(() => {
+    const pg =
+      searchParams.get("price_gt") || "";
+
+    const pl =
+      searchParams.get("price_lt") || "";
+
+    setPriceRange({
+      min: pg,
+      max: pl,
+    });
+
+    setAppliedPrice(
+      pg || pl
+        ? {
+            min: pg,
+            max: pl,
+          }
+        : null
+    );
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!isBrowsePage) return;
+
+    const q = searchParams.get("q") || "";
+
+    setSearchInResults(q);
+    setAppliedSearchInResults(q || null);
+  }, [searchParams, isBrowsePage]);
+
+  // ─────────────────────────────────────────
+  // API Params
+  // ─────────────────────────────────────────
+
+  const apiParams = useMemo(() => {
+    const params: Record<string, any> = {};
+
+    // Search
+    if (isSearchPage && searchQuery.trim()) {
+      params.query = searchQuery.trim();
     }
 
-    const getCategoryIdFromPath = (pathname: string) => {
-      const parts = pathname.split("/").filter(Boolean);
-      const browseIndex = parts.indexOf("browse");
-      if (browseIndex === -1) return null;
-      const ids = parts.slice(browseIndex + 1).filter((part) => /^\d+$/.test(part));
-      return ids.length ? Number(ids[ids.length - 1]) : null;
-    };
-
+    // Browse category
     if (isBrowsePage) {
-      const categoryId = getCategoryIdFromPath(pathname);
+      const categoryId =
+        getCategoryIdFromPath(pathname);
+
       if (categoryId) {
         params.category_id = categoryId;
       }
     }
 
     // Top filters
-    Object.entries(topFilterValues).forEach(([key, value]) => {
-      if (value !== null && value !== false && value !== "") {
-        params[key] = value;
+    Object.entries(topFilterValues).forEach(
+      ([key, value]) => {
+        if (
+          value !== null &&
+          value !== false &&
+          value !== ""
+        ) {
+          params[key] = value;
+        }
       }
-    });
+    );
 
     // Sidebar filters
-    Object.entries(activeFilters).forEach(([key, values]) => {
-      if (!values.length) return;
-      if (key === "brand") {
-        params.brand = values;
-      } else {
-        params[`spec_${key}`] = values.join(",");
-      }
-    });
+    Object.entries(activeFilters).forEach(
+      ([key, values]) => {
+        if (!values.length) return;
 
+        if (key === "brand") {
+          params.brand = values;
+        } else {
+          params[`spec_${key}`] =
+            values.join(",");
+        }
+      }
+    );
+
+    // Price
     if (appliedPrice?.min) {
-      params.price_gt = Number(appliedPrice.min.replace(/,/g, ""));
+      params.price_gt = Number(
+        appliedPrice.min.replace(/,/g, "")
+      );
     }
+
     if (appliedPrice?.max) {
-      params.price_lt = Number(appliedPrice.max.replace(/,/g, ""));
+      params.price_lt = Number(
+        appliedPrice.max.replace(/,/g, "")
+      );
+    }
+
+    // Search in browse results
+    if (
+      isBrowsePage &&
+      appliedSearchInResults?.trim()
+    ) {
+      params.q =
+        appliedSearchInResults.trim();
     }
 
     return params;
-  }, [searchQuery, topFilterValues, activeFilters, appliedPrice, pathname, isBrowsePage, isSearchPage]);
+  }, [
+    searchQuery,
+    topFilterValues,
+    activeFilters,
+    appliedPrice,
+    appliedSearchInResults,
+    pathname,
+    isBrowsePage,
+    isSearchPage,
+    getCategoryIdFromPath,
+  ]);
 
-  // ─── Call API with Infinite Query ────────────────────
+  // ─────────────────────────────────────────
+  // Search API
+  // ─────────────────────────────────────────
+
   const {
     data: searchResults,
     isPending,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    error
+    error,
   } = useSearch(apiParams);
 
-  // Ref for stable observer callback
-  fetchNextPageRef.current = fetchNextPage;
+  fetchNextPageRef.current =
+    fetchNextPage;
 
-  // Flatten all pages
-  const products = searchResults?.pages.flatMap((page: any) => page.data) || [];
-  const firstPage = searchResults?.pages?.[0];
+  // ─────────────────────────────────────────
+  // Flatten pages
+  // ─────────────────────────────────────────
+
+  const products =
+    searchResults?.pages.flatMap(
+      (page: any) => page.data
+    ) || [];
+
+  const firstPage =
+    searchResults?.pages?.[0];
 
   const shop = firstPage?.shop;
   const title = firstPage?.title;
-  const breadcrumb = firstPage?.breadcrumb || [];
-  const sidebarFilters: ApiFilter[] = firstPage?.filters1 || [];
-  const topFilters: ApiFilter[] = firstPage?.filters2 || [];
-  const pagination = firstPage?.pagination;
-  const minPrice = firstPage?.min_price;
-  const maxPrice = firstPage?.max_price;
-  const suggestedCategories = firstPage?.suggested_categories || [];
 
-  // ─── Initialize sidebar filters from URL ─────────────
+  const breadcrumb =
+    firstPage?.breadcrumb || [];
+
+  const sidebarFilters: ApiFilter[] =
+    firstPage?.filters1 || [];
+
+  const topFilters: ApiFilter[] =
+    firstPage?.filters2 || [];
+
+  const pagination =
+    firstPage?.pagination;
+
+  const minPrice =
+    firstPage?.min_price;
+
+  const maxPrice =
+    firstPage?.max_price;
+
+  const suggestedCategories =
+    firstPage?.suggested_categories || [];
+
+  const popularCategories =
+    firstPage?.popular_categories || [];
+
+  // ─────────────────────────────────────────
+  // Infinite Scroll
+  // ─────────────────────────────────────────
+
   useEffect(() => {
-    if (!sidebarFilters.length) return;
-    const initial: ActiveFilters = {};
-    sidebarFilters.forEach((filter) => {
-      const values = searchParams.getAll(filter.slug);
-      if (values.length) {
-        initial[filter.slug] = values.flatMap((v) => v.split(",")).filter(Boolean);
-      }
-    });
-    setActiveFilters(initial);
-  }, [sidebarFilters, searchParams]);
+    if (
+      !sentinelRef.current ||
+      !hasNextPage
+    ) {
+      return;
+    }
 
-  // ─── Initialize top filter values from URL + API ─────
-  useEffect(() => {
-    if (topFilters.length === 0) return;
-
-    const initialTopValues: Record<string, string | boolean | null> = {};
-    topFilters.forEach((filter) => {
-      const urlValue = searchParams.get(filter.slug);
-      if (urlValue !== null) {
-        if (filter.type === "toggle" || filter.type === "toggle-icon") {
-          initialTopValues[filter.slug] = urlValue === "true";
-        } else {
-          initialTopValues[filter.slug] = urlValue;
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          if (
+            entries[0].isIntersecting &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
+            fetchNextPageRef.current?.();
+          }
+        },
+        {
+          rootMargin: "300px",
         }
-      } else {
-        // هیچ defaultای نمی‌ذاریم. همه null/false
-        if (filter.type === "toggle" || filter.type === "toggle-icon") {
-          initialTopValues[filter.slug] = false;
-        } else {
-          initialTopValues[filter.slug] = null;
-        }
-      }
-    });
+      );
 
-    setTopFilterValues(initialTopValues);
-    setIsInitialized(true);
-  }, [topFilters.length, searchParams]);
-
-  // ─── Intersection Observer for Infinite Scroll ───────
-  useEffect(() => {
-    if (!sentinelRef.current || !hasNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPageRef.current?.();
-        }
-      },
-      { rootMargin: "300px" }
+    observer.observe(
+      sentinelRef.current
     );
 
-    observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage]);
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    hasNextPage,
+    isFetchingNextPage,
+  ]);
 
-  // ─── Sync URL with filters (بدون page) ───────────────
+  // ─────────────────────────────────────────
+  // Sync URL
+  // ─────────────────────────────────────────
+
   useEffect(() => {
-    if (!isInitialized) return;
-    if (isSyncingRef.current) return;
+    const params = new URLSearchParams(
+      window.location.search
+    );
 
-    const params = new URLSearchParams();
-
-    if (searchQuery) params.set("query", searchQuery);
+    // Search query
+    if (
+      isSearchPage &&
+      searchQuery.trim()
+    ) {
+      params.set(
+        "query",
+        searchQuery.trim()
+      );
+    } else {
+      params.delete("query");
+    }
 
     // Top filters
-    Object.entries(topFilterValues).forEach(([key, value]) => {
-      if (value !== null && value !== false && value !== "") {
-        if (value === true) {
-          params.set(key, "true");
-        } else {
-          params.set(key, String(value));
-        }
+    Object.entries(
+      topFilterValues
+    ).forEach(([key, value]) => {
+      if (
+        value !== null &&
+        value !== false &&
+        value !== ""
+      ) {
+        params.set(
+          key,
+          String(value)
+        );
+      } else {
+        params.delete(key);
       }
     });
 
     // Sidebar filters
-    Object.entries(activeFilters).forEach(([key, values]) => {
+    Object.entries(
+      activeFilters
+    ).forEach(([key, values]) => {
+      const urlKey =
+        key === "brand"
+          ? "brand"
+          : `spec_${key}`;
+
       if (values.length > 0) {
-        if (key === "brand") {
-          params.set("brand", values.join(","));
-        } else {
-          params.set(`spec_${key}`, values.join(","));
-        }
+        params.set(
+          urlKey,
+          values.join(",")
+        );
+      } else {
+        params.delete(urlKey);
       }
     });
 
-    if (appliedPrice?.min) params.set("price_gt", appliedPrice.min);
-    if (appliedPrice?.max) params.set("price_lt", appliedPrice.max);
+    // Price
+    if (appliedPrice?.min) {
+      params.set(
+        "price_gt",
+        appliedPrice.min
+      );
+    } else {
+      params.delete("price_gt");
+    }
 
-    const newUrl = `/search?${params.toString()}`;
-    const currentUrl = window.location.pathname + window.location.search;
+    if (appliedPrice?.max) {
+      params.set(
+        "price_lt",
+        appliedPrice.max
+      );
+    } else {
+      params.delete("price_lt");
+    }
+
+    // Search in browse results
+    if (
+      isBrowsePage &&
+      appliedSearchInResults?.trim()
+    ) {
+      params.set(
+        "q",
+        appliedSearchInResults.trim()
+      );
+    } else {
+      params.delete("q");
+    }
+
+    // Never keep page in URL
+    params.delete("page");
+
+    const queryString =
+      params.toString();
+
+    const newUrl = queryString
+      ? `${pathname}?${queryString}`
+      : pathname;
+
+    const currentUrl =
+      window.location.pathname +
+      window.location.search;
 
     if (newUrl !== currentUrl) {
-      isSyncingRef.current = true;
-      router.push(newUrl, { scroll: false });
-      setTimeout(() => {
-        isSyncingRef.current = false;
-      }, 0);
+      window.history.replaceState(
+        null,
+        "",
+        newUrl
+      );
     }
-  }, [isInitialized, topFilterValues, activeFilters, appliedPrice, searchQuery, router]);
+  }, [
+    pathname,
+    isBrowsePage,
+    isSearchPage,
+    searchQuery,
+    topFilterValues,
+    activeFilters,
+    appliedPrice,
+    appliedSearchInResults,
+  ]);
 
-  // ─── Handlers ────────────────────────────────────────
-  const handleTopFilterChange = useCallback((slug: string, value: string | boolean | null) => {
-    setTopFilterValues((prev) => ({ ...prev, [slug]: value }));
-  }, []);
+  // ─────────────────────────────────────────
+  // Handlers
+  // ─────────────────────────────────────────
 
-  const handleFilterChange = useCallback((groupId: string, optionId: string) => {
-    setActiveFilters((prev) => {
-      const currentFilter = sidebarFilters.find((f) => f.slug === groupId);
-      const isSingle = currentFilter?.type === "single_choice" || currentFilter?.type === "dropdown";
+  const handleTopFilterChange =
+    useCallback(
+      (
+        slug: string,
+        value:
+          | string
+          | boolean
+          | null
+      ) => {
+        setTopFilterValues(
+          (prev) => ({
+            ...prev,
+            [slug]: value,
+          })
+        );
+      },
+      []
+    );
 
-      if (isSingle) {
-        const current = prev[groupId] || [];
-        if (current.includes(optionId) || optionId === "") {
-          return { ...prev, [groupId]: [] };
-        }
-        return { ...prev, [groupId]: [optionId] };
-      } else {
-        const current = prev[groupId] || [];
-        if (current.includes(optionId)) {
-          return { ...prev, [groupId]: current.filter((id) => id !== optionId) };
-        }
-        return { ...prev, [groupId]: [...current, optionId] };
-      }
-    });
-  }, [sidebarFilters]);
+  const handleFilterChange =
+    useCallback(
+      (
+        groupId: string,
+        optionId: string
+      ) => {
+        setActiveFilters(
+          (prev) => {
+            const currentFilter =
+              sidebarFilters.find(
+                (f) =>
+                  f.slug === groupId
+              );
 
-  const handlePriceApply = useCallback(() => {
-    setAppliedPrice(priceRange);
-  }, [priceRange]);
+            const isSingle =
+              currentFilter?.type ===
+                "single_choice" ||
+              currentFilter?.type ===
+                "dropdown";
 
-  const handlePriceClear = useCallback(() => {
-    setPriceRange({ min: "", max: "" });
-    setAppliedPrice(null);
-  }, []);
+            if (isSingle) {
+              const current =
+                prev[groupId] || [];
 
-  const handleClearFilterGroup = useCallback((slug: string) => {
-    setActiveFilters((prev) => ({ ...prev, [slug]: [] }));
-  }, []);
+              if (
+                current.includes(
+                  optionId
+                ) ||
+                optionId === ""
+              ) {
+                return {
+                  ...prev,
+                  [groupId]: [],
+                };
+              }
 
-  const isCategoryNotFound = error && (error as any)?.status === 404
+              return {
+                ...prev,
+                [groupId]: [
+                  optionId,
+                ],
+              };
+            }
+
+            const current =
+              prev[groupId] || [];
+
+            if (
+              current.includes(
+                optionId
+              )
+            ) {
+              return {
+                ...prev,
+                [groupId]:
+                  current.filter(
+                    (id) =>
+                      id !== optionId
+                  ),
+              };
+            }
+
+            return {
+              ...prev,
+              [groupId]: [
+                ...current,
+                optionId,
+              ],
+            };
+          }
+        );
+      },
+      [sidebarFilters]
+    );
+
+  const handlePriceApply =
+    useCallback(() => {
+      setAppliedPrice({
+        min: priceRange.min,
+        max: priceRange.max,
+      });
+    }, [priceRange]);
+
+  const handlePriceClear =
+    useCallback(() => {
+      setPriceRange({
+        min: "",
+        max: "",
+      });
+
+      setAppliedPrice(null);
+    }, []);
+
+  const handleClearFilterGroup =
+    useCallback(
+      (slug: string) => {
+        setActiveFilters(
+          (prev) => ({
+            ...prev,
+            [slug]: [],
+          })
+        );
+      },
+      []
+    );
+
+  const handleSearchInResultsChange =
+    useCallback((val: string) => {
+      setSearchInResults(val);
+    }, []);
+
+  const handleSearchInResultsApply =
+    useCallback(() => {
+      setAppliedSearchInResults(
+        searchInResults.trim() || null
+      );
+    }, [searchInResults]);
+
+  const handleSearchInResultsClear =
+    useCallback(() => {
+      setSearchInResults("");
+      setAppliedSearchInResults(null);
+    }, []);
+
+  const isCategoryNotFound =
+    error &&
+    (error as any)?.status === 404;
+
+  // ─────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────
+
   return (
-    <div dir="rtl" className="min-h-screen text-[#1e293b] dark:text-white">
+    <div
+      dir="rtl"
+      className="min-h-screen text-[#1e293b] dark:text-white"
+    >
       <div className="max-w-8xl mx-auto px-12 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar */}
@@ -981,51 +1732,102 @@ function SearchContent() {
             <SidebarFilters
               apiFilters={sidebarFilters}
               activeFilters={activeFilters}
-              onFilterChange={handleFilterChange}
+              onFilterChange={
+                handleFilterChange
+              }
               priceRange={priceRange}
-              onPriceChange={setPriceRange}
-              onPriceApply={handlePriceApply}
-              onPriceClear={handlePriceClear}
+              onPriceChange={
+                setPriceRange
+              }
+              onPriceApply={
+                handlePriceApply
+              }
+              onPriceClear={
+                handlePriceClear
+              }
               minPrice={minPrice}
               maxPrice={maxPrice}
-              suggestedCategories={suggestedCategories}
+              suggestedCategories={
+                suggestedCategories
+              }
+              isBrowsePage={
+                isBrowsePage
+              }
+              searchInResults={
+                searchInResults
+              }
+              onSearchInResultsChange={
+                handleSearchInResultsChange
+              }
+              onSearchInResultsApply={
+                handleSearchInResultsApply
+              }
+              onSearchInResultsClear={
+                handleSearchInResultsClear
+              }
+              title={title}
+              popularCategories={
+                popularCategories
+              }
             />
           </div>
 
-          {/* Main Content */}
+          {/* Main */}
           <div className="lg:col-span-9 space-y-4">
-            <CategoryBreadcrumb categories={breadcrumb} />
+            <CategoryBreadcrumb
+              categories={breadcrumb}
+            />
 
             {title && (
-              <h1 className="text-2xl py-4 font-bold text-[#1e293b] dark:text-white">{title}</h1>
+              <h1 className="text-2xl py-4 font-bold text-[#1e293b] dark:text-white">
+                {title}
+              </h1>
             )}
 
             <TopFilterBar
               filters={topFilters}
-              activeValues={topFilterValues}
-              onChange={handleTopFilterChange}
+              activeValues={
+                topFilterValues
+              }
+              onChange={
+                handleTopFilterChange
+              }
             />
 
             <ActiveFilterBadges
-              filters={sidebarFilters}
-              onClear={handleClearFilterGroup}
+              filters={
+                sidebarFilters
+              }
+              onClear={
+                handleClearFilterGroup
+              }
             />
 
-            {/* Results Count */}
             {pagination && (
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 {pagination.total} محصول یافت شد
               </div>
             )}
 
-            {shop && <ShopHeader shop={shop} />}
+            {shop && (
+              <ShopHeader shop={shop} />
+            )}
 
-            {/* Product Results */}
-            {isCategoryNotFound ? <CategoryNotFound /> : <ProductResults data={products} isLoading={isPending} />}
-            {/* Sentinel for Infinite Scroll */}
-            <div ref={sentinelRef} className="h-10 w-full" />
+            {isCategoryNotFound ? (
+              <CategoryNotFound />
+            ) : (
+              <ProductResults
+                data={products}
+                isLoading={isPending}
+              />
+            )}
 
-            {/* Loading spinner for next page */}
+            {/* Infinite Scroll Sentinel */}
+            <div
+              ref={sentinelRef}
+              className="h-10 w-full"
+            />
+
             {isFetchingNextPage && (
               <div className="flex items-center justify-center py-6">
                 <Spinner className="size-6 text-blue-500" />
@@ -1037,6 +1839,10 @@ function SearchContent() {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────
+// Export
+// ─────────────────────────────────────────────
 
 export default function SearchFilters() {
   return (

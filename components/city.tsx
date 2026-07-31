@@ -230,7 +230,6 @@ export default function CitySelector() {
               )
             ) : (
               <div className="space-y-4">
-                {/* ─── شهر‌های پربازدید ─── */}
                 {popularCities.length > 0 && !popularLoading && !popularError && (
                   <div>
                     <h3 className="mb-2 text-right text-xs font-semibold text-slate-400 dark:text-slate-500">
