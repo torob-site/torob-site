@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, UseQueryOption
 import { axiosClient } from "./axios";
 import { useMemo } from "react";
 
+
 export function useGetUser() {
   return useQuery({
     queryKey: ['user'],
@@ -10,6 +11,32 @@ export function useGetUser() {
       return res.data
     },
   })
+}
+
+export function usePostAuthSendCode() {
+  return useMutation<any>({
+    mutationFn: async (payload) => {
+      const res = await axiosClient.post("/auth/send-code", payload);
+      return res.data;
+    },
+  });
+}
+
+export function usePostAuthVerifyCode() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any>({
+    mutationFn: async (payload) => {
+      const res = await axiosClient.post("/auth/verify-code", payload);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+        queryClient.invalidateQueries({ queryKey: ["user"] });
+      }
+    },
+  });
 }
 
 export function useGetUserFavorites(only_ids = false, options?: Omit<
@@ -325,5 +352,18 @@ export function useGetPopularCities() {
       );
       return res.data;
     },
+  });
+}
+
+export function useGetProductPriceHistory(product_id: number) {
+  return useQuery({
+    queryKey: ["price-history", product_id],
+    queryFn: async () => {
+      const res = await axiosClient.get(
+        `/products/${product_id}/price-history`
+      );
+      return res.data;
+    },
+    enabled: !!product_id
   });
 }
