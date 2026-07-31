@@ -33,9 +33,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useGetSimilarProducts, useGetUser, useGetUserAlerts, useGetUserFavorites, usePostUserHistory } from "@/lib/apis";
+import { useGetProductPriceHistory, useGetSimilarProducts, useGetUser, useGetUserAlerts, useGetUserFavorites, usePostUserHistory } from "@/lib/apis";
 import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
+import { baseURL } from "@/lib/axios";
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -271,7 +272,7 @@ function OfferCard({
             </Button>
           ) : (
             <a
-              href={offer.more_info_url}
+              href={`${baseURL}/products/redirect?offer_id=${Number(offer.id)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0"
@@ -448,6 +449,9 @@ function SellersList({ data }: { data: Offer[] }) {
 
 export default function ProductPage() {
   const { id, slug } = useParams();
+
+
+  const { data: priceHistory } = useGetProductPriceHistory(Number(id))
 
   const {
     data: searchResults,
@@ -648,9 +652,14 @@ export default function ProductPage() {
             <SellersList data={offers} />
           </div>
 
-          {/* Right Column */}
           <div className="lg:col-span-4 space-y-6">
-            <PriceChart />
+            {priceHistory && priceHistory.labels.length > 0 ? (
+              <PriceChart priceData={priceHistory} />
+            ) : (
+              <div className="dark:bg-[#1e293b] bg-white rounded-2xl p-6 flex items-center justify-center h-56">
+                <span className="text-sm text-gray-500">داده‌ای برای نمایش وجود ندارد</span>
+              </div>
+            )}
             <ProductSpecs />
           </div>
         </div>
