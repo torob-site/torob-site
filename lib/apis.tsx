@@ -367,3 +367,29 @@ export function useGetProductPriceHistory(product_id: number) {
     enabled: !!product_id
   });
 }
+
+
+export function useGetProduct(product_id: number) {
+  return useQuery({
+    queryKey: ["product", product_id],
+    queryFn: async () => {
+      const res = await axiosClient.get(
+        `/products/${product_id}`
+      );
+      return res.data;
+    },
+    enabled: !!product_id
+  });
+}
+
+
+export function useGetProductMapOffers(product_id: number) {
+  return useQuery<any>({
+    queryKey: ["product-map-offers", product_id],
+    queryFn: async () => {
+      const res = await axiosClient.get(`/products/${product_id}/map/offers`);
+      return res.data;
+    },
+    enabled: !!product_id,
+  });
+}

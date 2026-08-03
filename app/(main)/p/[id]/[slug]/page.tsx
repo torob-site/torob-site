@@ -20,6 +20,10 @@ import {
   Phone,
   MapPin,
   MessageCircle,
+  Search,
+  Home,
+  ArrowRight,
+  Map,
 } from "lucide-react";
 import PriceChart from "../../PriceChart";
 import ProductSpecs from "../../ProductSpecs";
@@ -33,12 +37,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useGetProductPriceHistory, useGetSimilarProducts, useGetUser, useGetUserAlerts, useGetUserFavorites, usePostUserHistory } from "@/lib/apis";
+import { useGetProduct, useGetProductPriceHistory, useGetSimilarProducts, useGetUser, useGetUserAlerts, useGetUserFavorites, usePostUserHistory } from "@/lib/apis";
 import { Spinner } from "@/components/ui/spinner";
-import Link from "next/link";
 import { baseURL } from "@/lib/axios";
+import ProductMap from "@/components/product-map";
+import Link from "next/link";
 
-// ─── Types ─────────────────────────────────────────────
 
 interface Shop {
   id: number;
@@ -158,6 +162,7 @@ const offers: Offer[] = [
     ],
     is_best: false,
   },
+
 ];
 
 type TabType = "all" | "ONLINE_SHOP" | "OFFLINE_SHOP";
@@ -335,6 +340,7 @@ function OfferCard({
 
 function SellersList({ data }: { data: Offer[] }) {
   const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [showMap, setShowMap] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const listTopRef = useRef<HTMLDivElement>(null);
   const offlineStartRef = useRef<HTMLDivElement>(null);
@@ -414,18 +420,37 @@ function SellersList({ data }: { data: Offer[] }) {
         ))}
 
         {offlineOffers.length > 0 && (
-          <div ref={offlineStartRef} className="pt-4">
-            {onlineOffers.length > 0 && (
-              <div className="flex items-center gap-3 pb-2 mb-2">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
-                  فروشگاه‌های حضوری ({offlineOffers.length})
-                </span>
-                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-              </div>
-            )}
-          </div>
+          <>
+            <div ref={offlineStartRef} className="pt-4">
+              {onlineOffers.length > 0 && (
+                <div className="flex items-center gap-3 pb-2 mb-2">
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+                  <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                    فروشگاه‌های حضوری ({offlineOffers.length})
+                  </span>
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+                </div>
+              )}
+            </div>
+
+            <div className="relative overflow-hidden rounded-lg">
+              <img
+                src="https://assets.torob.com/public/main/images/map/offline-map-banner.svg"
+                alt="نقشه فروشگاه‌ها"
+                className="w-full"
+              />
+
+              <Button
+                onClick={() => setShowMap(true)}
+                className="absolute bg-blue-500 hover:bg-blue-600 transition-all right-4 bottom-2 gap-2 rounded-lg py-5 text-white shadow-lg"
+              >
+                <Map className="h-4 w-4" />
+                نمایش روی نقشه
+              </Button>
+            </div>
+          </>
         )}
+        {showMap && <ProductMap onClose={() => setShowMap(false)} productName='گوشی سامسونگ S26 Ultra 5G حافظه ۲۵۶ رم ۱۲ گیگابایت' product_id={1} />}
 
         {offlineOffers.map((offer, index) => (
           <OfferCard
@@ -450,12 +475,16 @@ function SellersList({ data }: { data: Offer[] }) {
 export default function ProductPage() {
   const { id, slug } = useParams();
 
+  const { data, isPending } = useGetProduct(Number(id))
+
+
+
 
   const { data: priceHistory } = useGetProductPriceHistory(Number(id))
 
   const {
     data: searchResults,
-    isPending,
+    isPending: searchResultsIsPending,
     error,
     fetchNextPage,
     hasNextPage,
@@ -494,6 +523,79 @@ export default function ProductPage() {
     if (!user?.id || !id) return;
     addView({ product_id: Number(id) });
   }, [user?.id, id]);
+
+
+  if (isPending) {
+    return (
+      <div className="flex items-center w-full h-screen justify-center">
+        <Spinner className="size-8 text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-20" dir="rtl">
+
+        <div className="relative mb-10 group">
+          <div className="absolute inset-0 w-36 h-36 rounded-full bg-rose-500/10 dark:bg-rose-500/20 blur-2xl animate-pulse" />
+
+          <div className="relative w-32 h-32 rounded-full bg-white dark:bg-[#1e293b] border-2 border-gray-200 dark:border-gray-600/50 shadow-xl flex items-center justify-center transition-all duration-500 group-hover:scale-105">
+            <Search className="w-14 h-14 text-gray-400 dark:text-gray-500 transition-colors duration-500" strokeWidth={1.5} />
+          </div>
+
+          <div className="absolute -bottom-2 -left-2 w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 dark:from-rose-600 dark:to-pink-700 shadow-lg flex items-center justify-center text-sm font-extrabold text-white animate-bounce" style={{ animationDuration: "2s" }}>
+            ۴۰۴
+          </div>
+
+          <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-ping" style={{ animationDuration: "3s" }} />
+          <div className="absolute top-1/2 -right-5 w-2 h-2 rounded-full bg-blue-400 animate-ping" style={{ animationDuration: "2.5s", animationDelay: "0.5s" }} />
+        </div>
+
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight transition-colors duration-500">
+          محصول مورد نظر پیدا نشد
+        </h1>
+
+        <p className="text-gray-500 dark:text-gray-400 text-base max-w-sm mb-10 leading-relaxed transition-colors duration-500">
+          ممکن است این محصول حذف شده باشد، نام آن تغییر کرده باشد یا موقتاً در دسترس نباشد. لطفاً از طریق جستجو، محصول مورد نظر خود را پیدا کنید.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <Link href="/">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-2xl px-8 h-12 gap-2 font-semibold shadow-lg shadow-rose-500/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0">
+              <Home className="w-5 h-5" />
+              صفحه اصلی
+            </Button>
+          </Link>
+        </div>
+
+        <Link
+          href="/"
+          className="mt-8 flex items-center gap-2 text-sm text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors duration-300 font-medium group"
+        >
+          <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
+          بازگشت به صفحه قبل
+        </Link>
+
+        <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-800 w-full max-w-md transition-colors duration-500">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4 font-medium">
+            یا شاید به دنبال این‌ها بودید؟
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {["گوشی موبایل", "لپ‌تاپ", "هدفون", "ساعت هوشمند"].map((item) => (
+              <Link
+                key={item}
+                href={`/search?query=${encodeURIComponent(item)}`}
+                className="px-4 py-2 rounded-xl bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 hover:border-rose-300 dark:hover:border-rose-500/50 hover:text-rose-500 dark:hover:text-rose-400 transition-all duration-300"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const products = searchResults?.pages.flatMap((page: any) => page.data) || [];
 
@@ -667,7 +769,7 @@ export default function ProductPage() {
         <div className="mt-10">
           <h2 className="font-bold text-xl mb-4 dark:text-[#f1f5f9] text-[#1e293b]">محصولات پیشنهادی</h2>
 
-          {isPending ? (
+          {searchResultsIsPending ? (
             <div className="flex justify-center py-10">
               <Spinner className="size-8 text-blue-500" />
             </div>
