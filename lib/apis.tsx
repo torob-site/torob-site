@@ -6,6 +6,9 @@ import { useMemo } from "react";
 export function useGetUser() {
   return useQuery({
     queryKey: ['user'],
+    meta: {
+      authModal: false
+    },
     queryFn: async () => {
       const res = await axiosClient.get('/users/me')
       return res.data
@@ -45,7 +48,6 @@ export function useGetUserFavorites(only_ids = false, options?: Omit<
 >) {
   return useQuery<any>({
     queryKey: ['favorites', only_ids],
-
     queryFn: async () => {
 
       const res = await axiosClient.get(
@@ -54,7 +56,7 @@ export function useGetUserFavorites(only_ids = false, options?: Omit<
 
       return res.data;
     },
-    ...options
+    ...options,
   });
 }
 
@@ -76,7 +78,6 @@ export function usePostUserFavorite() {
         queryKey: ["favorites"],
       });
     },
-
     onError: console.error,
   });
 }
@@ -136,10 +137,10 @@ export function useGetUserAlerts(only_ids = false, options?: Omit<
   return useQuery<any>({
     queryKey: ['alerts', only_ids],
     queryFn: async () => {
-      const res = await axiosClient.get(`/alerts${only_ids ? "?only_ids=true" : ""}`)
+      const res = await axiosClient.get(`/users/me/alerts${only_ids ? "?only_ids=true" : ""}`)
       return res.data
     },
-    ...options
+    ...options,
   })
 }
 
@@ -147,7 +148,7 @@ export function useDeleteUserAlert() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data) => {
-      const res = await axiosClient.delete('/alerts', data)
+      const res = await axiosClient.delete('/users/me/alerts', data)
       return res.data
     },
     onError: console.error,
@@ -202,7 +203,7 @@ export function useGetUserReports() {
   return useQuery<any>({
     queryKey: ['reports'],
     queryFn: async () => {
-      const res = await axiosClient.get('/reports')
+      const res = await axiosClient.get('/users/me/reports')
       return res.data
     },
   })
@@ -212,7 +213,7 @@ export function useGetUserTickets() {
   return useQuery<any>({
     queryKey: ['tickets'],
     queryFn: async () => {
-      const res = await axiosClient.get('/tickets')
+      const res = await axiosClient.get('/users/me/tickets')
       return res.data
     },
   })
@@ -228,7 +229,6 @@ export function useGetAutoComplete(keyword: string) {
     enabled: keyword.trim().length > 0,
   })
 }
-
 
 export function useSearch(params: Record<string, any>) {
   const stableParams = useMemo(() => {
@@ -285,7 +285,6 @@ export function useSearch(params: Record<string, any>) {
     refetchOnWindowFocus: false,
   });
 }
-
 
 export function useGetSimilarProducts(product_id: number) {
   return useInfiniteQuery<any>({
@@ -364,10 +363,9 @@ export function useGetProductPriceHistory(product_id: number) {
       );
       return res.data;
     },
-    enabled: !!product_id
+    enabled: !!product_id,
   });
 }
-
 
 export function useGetProduct(product_id: number) {
   return useQuery({
@@ -378,10 +376,9 @@ export function useGetProduct(product_id: number) {
       );
       return res.data;
     },
-    enabled: !!product_id
+    enabled: !!product_id,
   });
 }
-
 
 export function useGetProductMapOffers(product_id: number) {
   return useQuery<any>({

@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import QueryProvider from "@/components/query-provider";
+import AuthProvider from "@/components/auth-provider";
 
 const myFont = localFont({
   src: [
@@ -26,10 +27,14 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="fa" dir="rtl" className={myFont.className}>
       <body className="dark:bg-[#15202b] bg-[#f1f5f9]">
-                <QueryProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <TooltipProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </TooltipProvider>
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>
