@@ -17,9 +17,9 @@ export default function Profile() {
   return (
     <div className="dark:bg-[#212b36] border-t border-b border-[#f1f5f9] dark:border-[#15202b] space-y-6 px-6 bg-[#ffffff] dark:text-white text-black dark:fill-white fill-black w-64 py-4">
       <Link
-        href="/user/analytics"
+        href="/user/alerts"
         className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/analytics" ? "text-[#d73948] fill-[#d73948]" : ""
+          pathname === "/user/alerts" ? "text-[#d73948] fill-[#d73948]" : ""
         }`}
       >
         <svg
