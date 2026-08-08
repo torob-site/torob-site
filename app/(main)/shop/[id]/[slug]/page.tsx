@@ -1,25 +1,11 @@
-type Props = {
-  params: Promise<{
-    id: string;
-    slug: string;
-  }>;
-};
-
-
-export default async function ShopPage({
-  params,
-}: Props) {
-
-  const { id, slug } = await params;
+export default function ShopInfoPage() {
   return (
-    <div>
-      <h1>
-        shop id: {id}
-      </h1>
-
-      <h2>
-        shop slug: {slug}
-      </h2>
+    <div className="space-y-6 dark:text-white">
+      <h2 className="text-xl font-bold">اطلاعات تکمیلی فروشگاه</h2>
+      <div className="space-y-4 text-sm text-[#64748b] dark:text-[#94a3b8]">
+        <p>این بخش مربوط به توضیحات و اطلاعات تکمیلی فروشگاه است.</p>
+        <p>شما می‌توانید در اینجا قوانین، شرایط ارسال، و سایر اطلاعات مربوط به فروشگاه را نمایش دهید.</p>
+      </div>
     </div>
   );
 }
