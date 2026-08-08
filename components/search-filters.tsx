@@ -2,13 +2,13 @@
 
 import {
   useState,
-  useEffect,
   Suspense,
   useMemo,
   useCallback,
   useRef,
+  useEffect,
 } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Check,
   ChevronDown,
@@ -37,15 +37,9 @@ import {
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
 import { Badge } from "./ui/badge";
+import { useSearchFilters } from "../hooks/use-search-filters";
 
-interface ActiveFilters {
-  [key: string]: string[];
-}
-
-interface PriceRange {
-  min: string;
-  max: string;
-}
+// ─── Types ───────────────────────────────────
 
 interface ApiFilterItem {
   value?: string | number;
@@ -62,9 +56,7 @@ interface ApiFilter {
   items?: ApiFilterItem[];
 }
 
-// ─────────────────────────────────────────────
-// Dropdown Filter
-// ─────────────────────────────────────────────
+// ─── Dropdown Filter ─────────────────────────
 
 function DropdownFilter({
   filter,
@@ -97,15 +89,11 @@ function DropdownFilter({
         <div className="absolute top-full right-0 mt-2 bg-[#ffffff] dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 min-w-[160px]">
           {filter.items?.map((item) => {
             const value = String(item.value || item.slug);
-
             return (
               <button
                 key={value}
                 onClick={() => {
-                  onChange(
-                    filter.slug,
-                    selectedValue === value ? null : value
-                  );
+                  onChange(filter.slug, selectedValue === value ? null : value);
                   setOpen(false);
                 }}
                 className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${
@@ -124,9 +112,7 @@ function DropdownFilter({
   );
 }
 
-// ─────────────────────────────────────────────
-// Toggle Filter
-// ─────────────────────────────────────────────
+// ─── Toggle Filter ───────────────────────────
 
 function ToggleFilter({
   filter,
@@ -142,7 +128,6 @@ function ToggleFilter({
       <span className="text-sm text-gray-600 dark:text-gray-300">
         {filter.title}
       </span>
-
       <Switch
         dir="ltr"
         checked={checked}
@@ -153,9 +138,7 @@ function ToggleFilter({
   );
 }
 
-// ─────────────────────────────────────────────
-// Toggle Group Filter
-// ─────────────────────────────────────────────
+// ─── Toggle Group Filter ─────────────────────
 
 function ToggleGroupFilter({
   filter,
@@ -171,7 +154,6 @@ function ToggleGroupFilter({
       {filter.items?.map((item, idx) => {
         const value = String(item.value || item.slug);
         const isSelected = selectedValue === value;
-
         return (
           <div key={value} className="flex items-center gap-2">
             {idx > 0 && (
@@ -179,16 +161,12 @@ function ToggleGroupFilter({
                 {item.name || value}
               </span>
             )}
-
             <Switch
               dir="ltr"
               checked={isSelected}
-              onCheckedChange={(v) =>
-                onChange(filter.slug, v ? value : null)
-              }
+              onCheckedChange={(v) => onChange(filter.slug, v ? value : null)}
               className="data-[state=checked]:bg-blue-500"
             />
-
             {idx === 0 && (
               <span className="text-sm text-gray-600 dark:text-gray-300">
                 {item.name || value}
@@ -201,9 +179,7 @@ function ToggleGroupFilter({
   );
 }
 
-// ─────────────────────────────────────────────
-// Toggle Icon Filter
-// ─────────────────────────────────────────────
+// ─── Toggle Icon Filter ──────────────────────
 
 function ToggleIconFilter({
   filter,
@@ -215,17 +191,12 @@ function ToggleIconFilter({
   onChange: (slug: string, checked: boolean) => void;
 }) {
   const IconComponent = filter.icon === "MapPin" ? MapPin : null;
-
   return (
     <label className="flex items-center gap-2 cursor-pointer">
-      {IconComponent && (
-        <IconComponent className="w-4 h-4 text-gray-400" />
-      )}
-
+      {IconComponent && <IconComponent className="w-4 h-4 text-gray-400" />}
       <span className="text-sm text-gray-600 dark:text-gray-300">
         {filter.title}
       </span>
-
       <Switch
         dir="ltr"
         checked={checked}
@@ -236,89 +207,299 @@ function ToggleIconFilter({
   );
 }
 
-// ─────────────────────────────────────────────
-// Top Filter Bar
-// ─────────────────────────────────────────────
 
-function TopFilterBar({
-  filters,
-  activeValues,
-  onChange,
-}: {
-  filters: ApiFilter[];
-  activeValues: Record<string, string | boolean | null>;
-  onChange: (slug: string, value: string | boolean | null) => void;
-}) {
-  if (!filters || filters.length === 0) return null;
+// ─── Top Filter Bar ──────────────────────────
 
-  const renderFilter = (filter: ApiFilter, index: number) => {
-    const separator =
-      index > 0 ? (
-        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
-      ) : null;
-
-    let content: React.ReactNode = null;
-
-    switch (filter.type) {
-      case "dropdown":
-        content = (
-          <DropdownFilter
-            filter={filter}
-            selectedValue={(activeValues[filter.slug] as string) || null}
-            onChange={(slug, val) => onChange(slug, val)}
-          />
-        );
-        break;
-
-      case "toggle":
-        content = (
-          <ToggleFilter
-            filter={filter}
-            checked={!!activeValues[filter.slug]}
-            onChange={(slug, val) => onChange(slug, val)}
-          />
-        );
-        break;
-
-      case "toggle-group":
-        content = (
-          <ToggleGroupFilter
-            filter={filter}
-            selectedValue={(activeValues[filter.slug] as string) || null}
-            onChange={(slug, val) => onChange(slug, val)}
-          />
-        );
-        break;
-
-      case "toggle-icon":
-        content = (
-          <ToggleIconFilter
-            filter={filter}
-            checked={!!activeValues[filter.slug]}
-            onChange={(slug, val) => onChange(slug, val)}
-          />
-        );
-        break;
-    }
-
-    return (
-      <div key={filter.slug} className="contents">
-        {separator}
-        {content}
-      </div>
-    );
-  };
+function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
+  const { topFilters, setTopFilter } = useSearchFilters();
+  if (!filters?.length) return null;
 
   return (
     <div className="flex items-center gap-4 flex-wrap bg-[#ffffff] dark:bg-[#1e293b] rounded-xl px-4 py-3">
-      {filters.map((filter, index) => renderFilter(filter, index))}
+      {filters.map((filter, index) => {
+        const separator = index > 0 ? <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" /> : null;
+        let content: React.ReactNode = null;
+
+        switch (filter.type) {
+          case "dropdown":
+            content = (
+              <DropdownFilter
+                filter={filter}
+                selectedValue={(topFilters[filter.slug] as string) || null}
+                onChange={(slug, val) => setTopFilter(slug, val)}
+              />
+            );
+            break;
+          case "toggle":
+            content = (
+              <ToggleFilter
+                filter={filter}
+                checked={!!topFilters[filter.slug]}
+                onChange={(slug, val) => setTopFilter(slug, val)}
+              />
+            );
+            break;
+          case "toggle-group":
+            content = (
+              <ToggleGroupFilter
+                filter={filter}
+                selectedValue={(topFilters[filter.slug] as string) || null}
+                onChange={(slug, val) => setTopFilter(slug, val)}
+              />
+            );
+            break;
+          case "toggle-icon":
+            content = (
+              <ToggleIconFilter
+                filter={filter}
+                checked={!!topFilters[filter.slug]}
+                onChange={(slug, val) => setTopFilter(slug, val)}
+              />
+            );
+            break;
+        }
+
+        return (
+          <div key={filter.slug} className="contents">
+            {separator}
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// Dynamic Sidebar Filter
-// ─────────────────────────────────────────────
+// ─── Price Filter (با دکمه اعمال) ───────────
+
+function PriceFilter({
+  minPrice,
+  maxPrice,
+}: {
+  minPrice?: number;
+  maxPrice?: number;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const {
+    priceMinInput,
+    setPriceMinInput,
+    priceMaxInput,
+    setPriceMaxInput,
+    applyPrice,
+    clearPrice,
+  } = useSearchFilters();
+
+  return (
+    <div className="border-b border-gray-200 dark:border-gray-800">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
+      >
+        <span>قیمت</span>
+        {expanded ? (
+          <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        )}
+      </button>
+
+      {expanded && (
+        <div className="pb-4 space-y-3">
+          {minPrice !== undefined && maxPrice !== undefined && (
+            <div className="text-xs text-gray-500 px-1">
+              رنج قیمت: {minPrice.toLocaleString("fa-IR")} -{" "}
+              {maxPrice.toLocaleString("fa-IR")} تومان
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">از</span>
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder={minPrice?.toString()}
+                value={priceMinInput}
+                onChange={(e) => setPriceMinInput(e.target.value)}
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">تا</span>
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder={maxPrice?.toString()}
+                value={priceMaxInput}
+                onChange={(e) => setPriceMaxInput(e.target.value)}
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={clearPrice}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
+            >
+              حذف
+            </button>
+            <button
+              onClick={applyPrice}
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
+            >
+              اعمال فیلتر
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Sidebar Filters ─────────────────────────
+
+function SidebarFilters({
+  apiFilters,
+  minPrice,
+  maxPrice,
+  suggestedCategories,
+  isBrowsePage,
+  title,
+  popularCategories,
+}: {
+  apiFilters: ApiFilter[];
+  minPrice?: number;
+  maxPrice?: number;
+  suggestedCategories?: { id: number; title: string; url: string }[];
+  isBrowsePage: boolean;
+  title?: string;
+  popularCategories?: { id: number; title: string; url: string }[];
+}) {
+  const { setActiveFilter } = useSearchFilters();
+
+  const handleFilterChange = (groupId: string, optionId: string) => {
+    const currentFilter = apiFilters.find((f) => f.slug === groupId);
+    const isSingle =
+      currentFilter?.type === "single_choice" ||
+      currentFilter?.type === "dropdown";
+    setActiveFilter(groupId, optionId, isSingle);
+  };
+
+  return (
+    <div>
+      <div className="bg-[#ffffff] dark:bg-[#1e293b] rounded-2xl p-4">
+        {apiFilters.map((filter) => (
+          <DynamicFilterGroup
+            key={filter.slug}
+            filter={filter}
+            selected={useSearchFilters().activeFilters[filter.slug] || []}
+            onChange={handleFilterChange}
+          />
+        ))}
+
+        <SuggestedCategories categories={suggestedCategories || []} />
+        <PriceFilter minPrice={minPrice} maxPrice={maxPrice} />
+
+        {isBrowsePage && (
+          <>
+            <SearchInResults />
+            <PriceListLink title={title} href="" />
+            <PopularCategories categories={popularCategories || []} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
+  const {
+    activeFilters,
+    clearActiveFilterGroup,
+    topFilters,
+    setTopFilter,
+    priceGt,
+    priceLt,
+    clearPrice,
+    q,
+    setQ,
+  } = useSearchFilters();
+
+  const badges: { label: string; onClear: () => void }[] = [];
+
+  // Top filter badges
+  filters.forEach((f) => {
+    if (f.badge_text && topFilters[f.slug] != null && topFilters[f.slug] !== false) {
+      badges.push({
+        label: f.badge_text,
+        onClear: () => setTopFilter(f.slug, null),
+      });
+    }
+  });
+
+  // Sidebar badges — گروهی
+  Object.entries(activeFilters).forEach(([slug, values]) => {
+    if (!values?.length) return;
+    const filter = filters.find((f) => f.slug === slug);
+    if (!filter) return;
+
+    // اسم هر مقدار رو پیدا کن
+    const names = values.map((v) => {
+      const item = filter.items?.find((i) => String(i.value || i.slug) === v);
+      return item?.name || v;
+    });
+
+    // یه badge برای کل گروه
+    badges.push({
+      label: `${filter.title}: ${names.join(" و ")}`,  // ← "رم: ۱۲ و ۳۲"
+      onClear: () => clearActiveFilterGroup(slug),
+    });
+  });
+
+  // Price badge
+  if (priceGt != null || priceLt != null) {
+    badges.push({
+      label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"} تا ${priceLt?.toLocaleString("fa-IR") || "∞"}`,
+      onClear: clearPrice,
+    });
+  }
+
+  if (q) {
+    badges.push({
+      label: `جستجو: ${q}`,
+      onClear: () => setQ(""),
+    });
+  }
+
+  if (!badges.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-4">
+      {badges.map((badge, i) => (
+        <Badge
+          key={i}
+          onClick={badge.onClear}
+          className="flex py-4 gap-3 items-center dark:text-white text-black bg-gray-100 dark:bg-[#212b36] border border-gray-300 dark:border-white rounded-full px-3 cursor-pointer"
+        >
+          <span>{badge.label}</span>
+          <XIcon className="w-4 h-4" />
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
+// ─── Dynamic Sidebar Filter ──────────────────
 
 function DynamicFilterGroup({
   filter,
@@ -344,11 +525,7 @@ function DynamicFilterGroup({
 
   const handleSelect = (value: string) => {
     if (isSingle) {
-      if (isSelected(value)) {
-        onChange(filter.slug, "");
-      } else {
-        onChange(filter.slug, value);
-      }
+      onChange(filter.slug, isSelected(value) ? "" : value);
     } else {
       onChange(filter.slug, value);
     }
@@ -361,7 +538,6 @@ function DynamicFilterGroup({
         className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition"
       >
         <span>{filter.title}</span>
-
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         ) : (
@@ -374,7 +550,6 @@ function DynamicFilterGroup({
           {displayItems.map((item, idx) => {
             const value = String(item.value || item.slug || item.name);
             const label = item.name || value;
-
             return (
               <label
                 key={`${filter.slug}-${idx}`}
@@ -387,12 +562,12 @@ function DynamicFilterGroup({
                         ? `w-4 h-4 rounded-full border ${
                             isSelected(value)
                               ? "border-blue-500"
-                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
                           }`
                         : `w-4 h-4 rounded border ${
                             isSelected(value)
                               ? "bg-blue-500 border-blue-500"
-                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400 dark:group-hover:border-gray-400"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
                           }`
                     }`}
                   >
@@ -403,7 +578,6 @@ function DynamicFilterGroup({
                         <Check className="w-3 h-3 text-white" />
                       ))}
                   </div>
-
                   <input
                     type={isSingle ? "radio" : "checkbox"}
                     name={filter.slug}
@@ -411,7 +585,6 @@ function DynamicFilterGroup({
                     checked={isSelected(value)}
                     onChange={() => handleSelect(value)}
                   />
-
                   <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#1e293b] dark:group-hover:text-white transition">
                     {label}
                   </span>
@@ -428,7 +601,6 @@ function DynamicFilterGroup({
               مشاهده بیشتر
             </button>
           )}
-
           {showAll && hasMore && (
             <button
               onClick={() => setShowAll(false)}
@@ -443,9 +615,7 @@ function DynamicFilterGroup({
   );
 }
 
-// ─────────────────────────────────────────────
-// Suggested Categories
-// ─────────────────────────────────────────────
+// ─── Suggested Categories ────────────────────
 
 function SuggestedCategories({
   categories,
@@ -453,8 +623,7 @@ function SuggestedCategories({
   categories: { id: number; title: string; url: string }[];
 }) {
   const [expanded, setExpanded] = useState(true);
-
-  if (!categories || categories.length === 0) return null;
+  if (!categories?.length) return null;
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">
@@ -463,14 +632,12 @@ function SuggestedCategories({
         className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
       >
         <span>دسته‌بندی‌های پیشنهادی</span>
-
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         ) : (
           <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         )}
       </button>
-
       {expanded && (
         <div className="flex flex-col gap-4 pt-2">
           {categories.map((cat) => (
@@ -488,134 +655,12 @@ function SuggestedCategories({
   );
 }
 
-// ─────────────────────────────────────────────
-// Price Filter
-// ─────────────────────────────────────────────
 
-function PriceFilter({
-  value,
-  onChange,
-  onApply,
-  onClear,
-  minPrice,
-  maxPrice,
-}: {
-  value: PriceRange;
-  onChange: (range: PriceRange) => void;
-  onApply: () => void;
-  onClear: () => void;
-  minPrice?: number;
-  maxPrice?: number;
-}) {
+// ─── Search In Results (با دکمه اعمال) ───────
+
+function SearchInResults() {
   const [expanded, setExpanded] = useState(true);
-
-  return (
-    <div className="border-b border-gray-200 dark:border-gray-800">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
-      >
-        <span>قیمت</span>
-
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-        )}
-      </button>
-
-      {expanded && (
-        <div className="pb-4 space-y-3">
-          {minPrice !== undefined && maxPrice !== undefined && (
-            <div className="text-xs text-gray-500 px-1">
-              رنج قیمت: {minPrice.toLocaleString("fa-IR")} -{" "}
-              {maxPrice.toLocaleString("fa-IR")} تومان
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
-              از
-            </span>
-
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder={minPrice?.toString()}
-                value={value.min}
-                onChange={(e) =>
-                  onChange({ ...value, min: e.target.value })
-                }
-                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
-              />
-
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
-                تومان
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
-              تا
-            </span>
-
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder={maxPrice?.toString()}
-                value={value.max}
-                onChange={(e) =>
-                  onChange({ ...value, max: e.target.value })
-                }
-                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
-              />
-
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
-                تومان
-              </span>
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={onClear}
-              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
-            >
-              حذف
-            </button>
-
-            <button
-              onClick={onApply}
-              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
-            >
-              اعمال فیلتر
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Search In Results
-// ─────────────────────────────────────────────
-
-function SearchInResults({
-  value,
-  onChange,
-  onApply,
-  onClear,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  onApply: () => void;
-  onClear: () => void;
-}) {
-  const [expanded, setExpanded] = useState(true);
+  const { searchInput, setSearchInput, applySearch, clearSearch } = useSearchFilters();
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800">
@@ -624,7 +669,6 @@ function SearchInResults({
         className="w-full flex items-center justify-between py-4 px-1 text-sm font-medium"
       >
         <span>جستجو در نتایج</span>
-
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-gray-400" />
         ) : (
@@ -638,27 +682,25 @@ function SearchInResults({
             <Input
               type="text"
               placeholder="جستجو در نتایج..."
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") onApply();
+                if (e.key === "Enter") applySearch();
               }}
               className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-right pr-10 h-10"
             />
-
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
 
           <div className="flex gap-2 pt-1">
             <button
-              onClick={onClear}
+              onClick={clearSearch}
               className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
             >
               حذف
             </button>
-
             <button
-              onClick={onApply}
+              onClick={applySearch}
               className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
             >
               اعمال
@@ -670,19 +712,10 @@ function SearchInResults({
   );
 }
 
-// ─────────────────────────────────────────────
-// Price List
-// ─────────────────────────────────────────────
+// ─── Price List ──────────────────────────────
 
-function PriceListLink({
-  title,
-  href,
-}: {
-  title?: string;
-  href?: string;
-}) {
+function PriceListLink({ title, href }: { title?: string; href?: string }) {
   if (!title) return null;
-
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 py-4">
       <Link
@@ -695,23 +728,19 @@ function PriceListLink({
   );
 }
 
-// ─────────────────────────────────────────────
-// Popular Categories
-// ─────────────────────────────────────────────
+// ─── Popular Categories ──────────────────────
 
 function PopularCategories({
   categories,
 }: {
   categories: { id: number; title: string; url: string }[];
 }) {
-  if (!categories || categories.length === 0) return null;
-
+  if (!categories?.length) return null;
   return (
     <div className="mt-4">
       <h3 className="text-sm font-bold text-[#1e293b] dark:text-white mb-3">
         دسته‌بندی‌های پربازدید
       </h3>
-
       <div className="flex flex-col gap-2">
         {categories.map((cat) => (
           <Link
@@ -727,110 +756,14 @@ function PopularCategories({
   );
 }
 
-// ─────────────────────────────────────────────
-// Sidebar
-// ─────────────────────────────────────────────
 
-function SidebarFilters({
-  apiFilters,
-  activeFilters,
-  onFilterChange,
-  priceRange,
-  onPriceChange,
-  onPriceApply,
-  onPriceClear,
-  minPrice,
-  maxPrice,
-  suggestedCategories,
-  isBrowsePage,
-  searchInResults,
-  onSearchInResultsChange,
-  onSearchInResultsApply,
-  onSearchInResultsClear,
-  title,
-  popularCategories,
-}: {
-  apiFilters: ApiFilter[];
-  activeFilters: ActiveFilters;
-  onFilterChange: (groupId: string, optionId: string) => void;
-  priceRange: PriceRange;
-  onPriceChange: (range: PriceRange) => void;
-  onPriceApply: () => void;
-  onPriceClear: () => void;
-  minPrice?: number;
-  maxPrice?: number;
-  suggestedCategories?: { id: number; title: string; url: string }[];
-  isBrowsePage: boolean;
-  searchInResults: string;
-  onSearchInResultsChange: (val: string) => void;
-  onSearchInResultsApply: () => void;
-  onSearchInResultsClear: () => void;
-  title?: string;
-  popularCategories?: { id: number; title: string; url: string }[];
-}) {
-  return (
-    <div>
-      <div className="bg-[#ffffff] dark:bg-[#1e293b] rounded-2xl p-4">
-        {apiFilters.map((filter) => (
-          <DynamicFilterGroup
-            key={filter.slug}
-            filter={filter}
-            selected={activeFilters[filter.slug] || []}
-            onChange={(slug, value) =>
-              onFilterChange(slug, value)
-            }
-          />
-        ))}
+// ─── Product Results ─────────────────────────
 
-        <SuggestedCategories categories={suggestedCategories || []} />
-
-        <PriceFilter
-          value={priceRange}
-          onChange={onPriceChange}
-          onApply={onPriceApply}
-          onClear={onPriceClear}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-        />
-
-        {isBrowsePage && (
-          <>
-            <SearchInResults
-              value={searchInResults}
-              onChange={onSearchInResultsChange}
-              onApply={onSearchInResultsApply}
-              onClear={onSearchInResultsClear}
-            />
-
-            <PriceListLink title={title} href="" />
-
-            <PopularCategories
-              categories={popularCategories || []}
-            />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Product Results
-// ─────────────────────────────────────────────
-
-function ProductResults({
-  data,
-  isLoading,
-}: {
-  data: any[];
-  isLoading: boolean;
-}) {
+function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }) {
   const { data: user } = useGetUser();
-
   const { data: favoriteIds = [] } = useGetUserFavorites(true, {
     enabled: !!user?.phone,
   });
-
   const { data: alertIds = [] } = useGetUserAlerts(true, {
     enabled: !!user?.phone,
   });
@@ -846,14 +779,12 @@ function ProductResults({
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!data?.length) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
         <Search className="w-16 h-16 mb-4 opacity-30" />
         <p className="text-lg">نتیجه‌ای پیدا نشد</p>
-        <p className="text-sm mt-2">
-          لطفاً عبارت دیگری را جستجو کنید
-        </p>
+        <p className="text-sm mt-2">لطفاً عبارت دیگری را جستجو کنید</p>
       </div>
     );
   }
@@ -873,31 +804,11 @@ function ProductResults({
   );
 }
 
-// ─────────────────────────────────────────────
-// Shop Header
-// ─────────────────────────────────────────────
+// ─── Shop Header ─────────────────────────────
 
 function ShopHeader({ shop }: { shop: any }) {
-  const router = useRouter();
   const [query, setQuery] = useState("");
-
   if (!shop) return null;
-
-  const doSearch = () => {
-    if (!query.trim()) return;
-
-    router.push(
-      `/shop/${shop.id}/${shop.shop_name}/محصولات/?q=${encodeURIComponent(
-        query.trim()
-      )}`
-    );
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") doSearch();
-  };
 
   return (
     <div className="mb-4 w-96 space-y-3">
@@ -910,12 +821,10 @@ function ShopHeader({ shop }: { shop: any }) {
               className="w-14 h-14 rounded-xl object-cover bg-gray-100 dark:bg-gray-800 shrink-0"
             />
           )}
-
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-[#1e293b] dark:text-white truncate">
               {shop.shop_name}
             </h2>
-
             {shop.domain && (
               <a
                 href={`https://${shop.domain}`}
@@ -929,68 +838,35 @@ function ShopHeader({ shop }: { shop: any }) {
           </div>
         </div>
       </div>
-
-      <div className="flex bg-gray-100 dark:bg-[#212b36] py-3 rounded-lg px-3 items-center gap-3">
-        <Search
-          onClick={doSearch}
-          className="w-5 h-5 cursor-pointer"
-          color="#f43f5e"
-        />
-
-        <input
-          type="text"
-          placeholder="جستجو در محصولات این فروشگاه..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0"
-        />
-      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// Breadcrumb
-// ─────────────────────────────────────────────
+// ─── Breadcrumb ──────────────────────────────
 
 function CategoryBreadcrumb({
   categories,
 }: {
-  categories: {
-    id: number;
-    title: string;
-    url: string;
-  }[];
+  categories: { id: number; title: string; url: string }[];
 }) {
-  if (!categories || categories.length === 0) return null;
-
+  if (!categories?.length) return null;
   return (
-    <Breadcrumb
-      dir="rtl"
-      className="border-b border-gray-200 dark:border-gray-800 py-2"
-    >
+    <Breadcrumb dir="rtl" className="border-b border-gray-200 dark:border-gray-800 py-2">
       <BreadcrumbList>
         {categories.map((category, index) => {
           const isLast = index === categories.length - 1;
-
           return (
             <div key={category.id} className="flex items-center">
               <BreadcrumbItem>
                 {isLast ? (
                   <BreadcrumbPage>{category.title}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink
-                    href={`/browse/${category.id}/${category.url}`}
-                  >
+                  <BreadcrumbLink href={`/browse/${category.id}/${category.url}`}>
                     {category.title}
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
-
-              {!isLast && (
-                <BreadcrumbSeparator className="px-1 rotate-180" />
-              )}
+              {!isLast && <BreadcrumbSeparator className="px-1 rotate-180" />}
             </div>
           );
         })}
@@ -999,54 +875,16 @@ function CategoryBreadcrumb({
   );
 }
 
-// ─────────────────────────────────────────────
-// Active Filter Badges
-// ─────────────────────────────────────────────
 
-function ActiveFilterBadges({
-  filters,
-  onClear,
-}: {
-  filters: ApiFilter[];
-  onClear: (slug: string) => void;
-}) {
-  const badges = filters.filter((f) => f.badge_text);
 
-  if (badges.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap gap-4">
-      {badges.map((filter) => (
-        <Badge
-          key={filter.slug}
-          onClick={() => onClear(filter.slug)}
-          className="flex py-4 gap-3 items-center bg-gray-100 dark:bg-[#212b36] border border-gray-300 dark:border-white rounded-full px-3 cursor-pointer"
-        >
-          <span>{filter.badge_text}</span>
-          <XIcon className="w-4 h-4" />
-        </Badge>
-      ))}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Category Not Found
-// ─────────────────────────────────────────────
+// ─── Category Not Found ──────────────────────
 
 function CategoryNotFound() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
       <Search className="w-16 h-16 mb-4 opacity-30" />
-
-      <p className="text-lg font-bold text-red-500">
-        دسته‌بندی مورد نظر یافت نشد
-      </p>
-
-      <p className="text-sm mt-2">
-        دسته‌بندی که به دنبال آن هستید وجود ندارد یا حذف شده است
-      </p>
-
+      <p className="text-lg font-bold text-red-500">دسته‌بندی مورد نظر یافت نشد</p>
+      <p className="text-sm mt-2">دسته‌بندی که به دنبال آن هستید وجود ندارد یا حذف شده است</p>
       <Link
         href="/"
         className="mt-6 px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
@@ -1057,299 +895,31 @@ function CategoryNotFound() {
   );
 }
 
-// ─────────────────────────────────────────────
-// Search Content
-// ─────────────────────────────────────────────
+// ─── Search Content (nuqs) ───────────────────
 
 function SearchContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
-
   const isBrowsePage = pathname.startsWith("/browse");
   const isSearchPage = pathname.startsWith("/search");
+  const { apiParams, query } = useSearchFilters();
 
-  // ─────────────────────────────────────────
-  // Initial URL values
-  // ─────────────────────────────────────────
+  const getCategoryIdFromPath = useCallback((currentPathname: string) => {
+    const parts = currentPathname.split("/").filter(Boolean);
+    const browseIndex = parts.indexOf("browse");
+    if (browseIndex === -1) return null;
+    const ids = parts.slice(browseIndex + 1).filter((part) => /^\d+$/.test(part));
+    return ids.length ? Number(ids[ids.length - 1]) : null;
+  }, []);
 
-  const initialQuery = searchParams.get("query") || "";
-  const initialPriceGt = searchParams.get("price_gt") || "";
-  const initialPriceLt = searchParams.get("price_lt") || "";
-  const initialQ = isBrowsePage
-    ? searchParams.get("q") || ""
-    : "";
-
-  // ─────────────────────────────────────────
-  // Helper: category id
-  // ─────────────────────────────────────────
-
-  const getCategoryIdFromPath = useCallback(
-    (currentPathname: string) => {
-      const parts = currentPathname
-        .split("/")
-        .filter(Boolean);
-
-      const browseIndex = parts.indexOf("browse");
-
-      if (browseIndex === -1) return null;
-
-      const ids = parts
-        .slice(browseIndex + 1)
-        .filter((part) => /^\d+$/.test(part));
-
-      return ids.length ? Number(ids[ids.length - 1]) : null;
-    },
-    []
-  );
-
-  // ─────────────────────────────────────────
-  // Read sidebar filters directly from URL
-  // ─────────────────────────────────────────
-
-  const initialActiveFilters = useMemo(() => {
-    const result: ActiveFilters = {};
-
-    searchParams.forEach((value, key) => {
-      if (key === "brand") {
-        result.brand = value
-          .split(",")
-          .filter(Boolean);
-        return;
-      }
-
-      if (key.startsWith("spec_")) {
-        const slug = key.replace(/^spec_/, "");
-
-        result[slug] = value
-          .split(",")
-          .filter(Boolean);
-      }
-    });
-
-    return result;
-  }, [searchParams]);
-
-  // ─────────────────────────────────────────
-  // Read top filters directly from URL
-  // ─────────────────────────────────────────
-
-  const RESERVED_PARAMS = useMemo(
-    () =>
-      new Set([
-        "query",
-        "q",
-        "price_gt",
-        "price_lt",
-        "page",
-        "sort",
-      ]),
-    []
-  );
-
-  const initialTopFilterValues = useMemo(() => {
-    const result: Record<
-      string,
-      string | boolean | null
-    > = {};
-
-    searchParams.forEach((value, key) => {
-      if (RESERVED_PARAMS.has(key)) return;
-      if (key === "brand") return;
-      if (key.startsWith("spec_")) return;
-
-      if (value === "true") {
-        result[key] = true;
-      } else if (value === "false") {
-        result[key] = false;
-      } else {
-        result[key] = value;
-      }
-    });
-
-    return result;
-  }, [searchParams, RESERVED_PARAMS]);
-
-  // ─────────────────────────────────────────
-  // States
-  // ─────────────────────────────────────────
-
-  const [searchQuery, setSearchQuery] =
-    useState(initialQuery);
-
-  const [activeFilters, setActiveFilters] =
-    useState<ActiveFilters>(initialActiveFilters);
-
-  const [priceRange, setPriceRange] =
-    useState<PriceRange>({
-      min: initialPriceGt,
-      max: initialPriceLt,
-    });
-
-  const [appliedPrice, setAppliedPrice] =
-    useState<PriceRange | null>(
-      initialPriceGt || initialPriceLt
-        ? {
-            min: initialPriceGt,
-            max: initialPriceLt,
-          }
-        : null
-    );
-
-  const [searchInResults, setSearchInResults] =
-    useState(initialQ);
-
-  const [appliedSearchInResults, setAppliedSearchInResults] =
-    useState<string | null>(initialQ || null);
-
-  const [topFilterValues, setTopFilterValues] =
-    useState<
-      Record<string, string | boolean | null>
-    >(initialTopFilterValues);
-
-  const sentinelRef =
-    useRef<HTMLDivElement>(null);
-
-  const fetchNextPageRef = useRef<any>(null);
-
-  // ─────────────────────────────────────────
-  // Keep states synced with URL
-  // ─────────────────────────────────────────
-
-  useEffect(() => {
-    setSearchQuery(
-      isSearchPage
-        ? searchParams.get("query") || ""
-        : ""
-    );
-  }, [searchParams, isSearchPage]);
-
-  useEffect(() => {
-    setActiveFilters(initialActiveFilters);
-  }, [initialActiveFilters]);
-
-  useEffect(() => {
-    setTopFilterValues(initialTopFilterValues);
-  }, [initialTopFilterValues]);
-
-  useEffect(() => {
-    const pg =
-      searchParams.get("price_gt") || "";
-
-    const pl =
-      searchParams.get("price_lt") || "";
-
-    setPriceRange({
-      min: pg,
-      max: pl,
-    });
-
-    setAppliedPrice(
-      pg || pl
-        ? {
-            min: pg,
-            max: pl,
-          }
-        : null
-    );
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!isBrowsePage) return;
-
-    const q = searchParams.get("q") || "";
-
-    setSearchInResults(q);
-    setAppliedSearchInResults(q || null);
-  }, [searchParams, isBrowsePage]);
-
-  // ─────────────────────────────────────────
-  // API Params
-  // ─────────────────────────────────────────
-
-  const apiParams = useMemo(() => {
-    const params: Record<string, any> = {};
-
-    // Search
-    if (isSearchPage && searchQuery.trim()) {
-      params.query = searchQuery.trim();
-    }
-
-    // Browse category
+  const finalApiParams = useMemo(() => {
+    const params = { ...apiParams };
+    if (isSearchPage && query.trim()) params.query = query.trim();
     if (isBrowsePage) {
-      const categoryId =
-        getCategoryIdFromPath(pathname);
-
-      if (categoryId) {
-        params.category_id = categoryId;
-      }
+      const categoryId = getCategoryIdFromPath(pathname);
+      if (categoryId) params.category_id = categoryId;
     }
-
-    // Top filters
-    Object.entries(topFilterValues).forEach(
-      ([key, value]) => {
-        if (
-          value !== null &&
-          value !== false &&
-          value !== ""
-        ) {
-          params[key] = value;
-        }
-      }
-    );
-
-    // Sidebar filters
-    Object.entries(activeFilters).forEach(
-      ([key, values]) => {
-        if (!values.length) return;
-
-        if (key === "brand") {
-          params.brand = values;
-        } else {
-          params[`spec_${key}`] =
-            values.join(",");
-        }
-      }
-    );
-
-    // Price
-    if (appliedPrice?.min) {
-      params.price_gt = Number(
-        appliedPrice.min.replace(/,/g, "")
-      );
-    }
-
-    if (appliedPrice?.max) {
-      params.price_lt = Number(
-        appliedPrice.max.replace(/,/g, "")
-      );
-    }
-
-    // Search in browse results
-    if (
-      isBrowsePage &&
-      appliedSearchInResults?.trim()
-    ) {
-      params.q =
-        appliedSearchInResults.trim();
-    }
-
     return params;
-  }, [
-    searchQuery,
-    topFilterValues,
-    activeFilters,
-    appliedPrice,
-    appliedSearchInResults,
-    pathname,
-    isBrowsePage,
-    isSearchPage,
-    getCategoryIdFromPath,
-  ]);
-
-  // ─────────────────────────────────────────
-  // Search API
-  // ─────────────────────────────────────────
+  }, [apiParams, isSearchPage, isBrowsePage, query, pathname, getCategoryIdFromPath]);
 
   const {
     data: searchResults,
@@ -1358,425 +928,63 @@ function SearchContent() {
     hasNextPage,
     isFetchingNextPage,
     error,
-  } = useSearch(apiParams);
+  } = useSearch(finalApiParams);
 
-  fetchNextPageRef.current =
-    fetchNextPage;
-
-  // ─────────────────────────────────────────
-  // Flatten pages
-  // ─────────────────────────────────────────
-
-  const products =
-    searchResults?.pages.flatMap(
-      (page: any) => page.data
-    ) || [];
-
-  const firstPage =
-    searchResults?.pages?.[0];
+  const products = searchResults?.pages.flatMap((page: any) => page.data) || [];
+  const firstPage = searchResults?.pages?.[0];
 
   const shop = firstPage?.shop;
   const title = firstPage?.title;
+  const breadcrumb = firstPage?.breadcrumb || [];
+  const sidebarFilters: ApiFilter[] = firstPage?.filters1 || [];
+  const topFilters: ApiFilter[] = firstPage?.filters2 || [];
+  const pagination = firstPage?.pagination;
+  const minPrice = firstPage?.min_price;
+  const maxPrice = firstPage?.max_price;
+  const suggestedCategories = firstPage?.suggested_categories || [];
+  const popularCategories = firstPage?.popular_categories || [];
 
-  const breadcrumb =
-    firstPage?.breadcrumb || [];
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const fetchNextPageRef = useRef<any>(null);
+  fetchNextPageRef.current = fetchNextPage;
 
-  const sidebarFilters: ApiFilter[] =
-    firstPage?.filters1 || [];
-
-  const topFilters: ApiFilter[] =
-    firstPage?.filters2 || [];
-
-  const pagination =
-    firstPage?.pagination;
-
-  const minPrice =
-    firstPage?.min_price;
-
-  const maxPrice =
-    firstPage?.max_price;
-
-  const suggestedCategories =
-    firstPage?.suggested_categories || [];
-
-  const popularCategories =
-    firstPage?.popular_categories || [];
-
-  // ─────────────────────────────────────────
   // Infinite Scroll
-  // ─────────────────────────────────────────
-
   useEffect(() => {
-    if (
-      !sentinelRef.current ||
-      !hasNextPage
-    ) {
-      return;
-    }
-
-    const observer =
-      new IntersectionObserver(
-        (entries) => {
-          if (
-            entries[0].isIntersecting &&
-            hasNextPage &&
-            !isFetchingNextPage
-          ) {
-            fetchNextPageRef.current?.();
-          }
-        },
-        {
-          rootMargin: "300px",
+    if (!sentinelRef.current || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPageRef.current?.();
         }
-      );
-
-    observer.observe(
-      sentinelRef.current
-    );
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [
-    hasNextPage,
-    isFetchingNextPage,
-  ]);
-
-  // ─────────────────────────────────────────
-  // Sync URL
-  // ─────────────────────────────────────────
-
-  useEffect(() => {
-    const params = new URLSearchParams(
-      window.location.search
-    );
-
-    // Search query
-    if (
-      isSearchPage &&
-      searchQuery.trim()
-    ) {
-      params.set(
-        "query",
-        searchQuery.trim()
-      );
-    } else {
-      params.delete("query");
-    }
-
-    // Top filters
-    Object.entries(
-      topFilterValues
-    ).forEach(([key, value]) => {
-      if (
-        value !== null &&
-        value !== false &&
-        value !== ""
-      ) {
-        params.set(
-          key,
-          String(value)
-        );
-      } else {
-        params.delete(key);
-      }
-    });
-
-    // Sidebar filters
-    Object.entries(
-      activeFilters
-    ).forEach(([key, values]) => {
-      const urlKey =
-        key === "brand"
-          ? "brand"
-          : `spec_${key}`;
-
-      if (values.length > 0) {
-        params.set(
-          urlKey,
-          values.join(",")
-        );
-      } else {
-        params.delete(urlKey);
-      }
-    });
-
-    // Price
-    if (appliedPrice?.min) {
-      params.set(
-        "price_gt",
-        appliedPrice.min
-      );
-    } else {
-      params.delete("price_gt");
-    }
-
-    if (appliedPrice?.max) {
-      params.set(
-        "price_lt",
-        appliedPrice.max
-      );
-    } else {
-      params.delete("price_lt");
-    }
-
-    // Search in browse results
-    if (
-      isBrowsePage &&
-      appliedSearchInResults?.trim()
-    ) {
-      params.set(
-        "q",
-        appliedSearchInResults.trim()
-      );
-    } else {
-      params.delete("q");
-    }
-
-    // Never keep page in URL
-    params.delete("page");
-
-    const queryString =
-      params.toString();
-
-    const newUrl = queryString
-      ? `${pathname}?${queryString}`
-      : pathname;
-
-    const currentUrl =
-      window.location.pathname +
-      window.location.search;
-
-    if (newUrl !== currentUrl) {
-      window.history.replaceState(
-        null,
-        "",
-        newUrl
-      );
-    }
-  }, [
-    pathname,
-    isBrowsePage,
-    isSearchPage,
-    searchQuery,
-    topFilterValues,
-    activeFilters,
-    appliedPrice,
-    appliedSearchInResults,
-  ]);
-
-  // ─────────────────────────────────────────
-  // Handlers
-  // ─────────────────────────────────────────
-
-  const handleTopFilterChange =
-    useCallback(
-      (
-        slug: string,
-        value:
-          | string
-          | boolean
-          | null
-      ) => {
-        setTopFilterValues(
-          (prev) => ({
-            ...prev,
-            [slug]: value,
-          })
-        );
       },
-      []
+      { rootMargin: "300px" }
     );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage]);
 
-  const handleFilterChange =
-    useCallback(
-      (
-        groupId: string,
-        optionId: string
-      ) => {
-        setActiveFilters(
-          (prev) => {
-            const currentFilter =
-              sidebarFilters.find(
-                (f) =>
-                  f.slug === groupId
-              );
-
-            const isSingle =
-              currentFilter?.type ===
-                "single_choice" ||
-              currentFilter?.type ===
-                "dropdown";
-
-            if (isSingle) {
-              const current =
-                prev[groupId] || [];
-
-              if (
-                current.includes(
-                  optionId
-                ) ||
-                optionId === ""
-              ) {
-                return {
-                  ...prev,
-                  [groupId]: [],
-                };
-              }
-
-              return {
-                ...prev,
-                [groupId]: [
-                  optionId,
-                ],
-              };
-            }
-
-            const current =
-              prev[groupId] || [];
-
-            if (
-              current.includes(
-                optionId
-              )
-            ) {
-              return {
-                ...prev,
-                [groupId]:
-                  current.filter(
-                    (id) =>
-                      id !== optionId
-                  ),
-              };
-            }
-
-            return {
-              ...prev,
-              [groupId]: [
-                ...current,
-                optionId,
-              ],
-            };
-          }
-        );
-      },
-      [sidebarFilters]
-    );
-
-  const handlePriceApply =
-    useCallback(() => {
-      setAppliedPrice({
-        min: priceRange.min,
-        max: priceRange.max,
-      });
-    }, [priceRange]);
-
-  const handlePriceClear =
-    useCallback(() => {
-      setPriceRange({
-        min: "",
-        max: "",
-      });
-
-      setAppliedPrice(null);
-    }, []);
-
-  const handleClearFilterGroup =
-    useCallback(
-      (slug: string) => {
-        setActiveFilters(
-          (prev) => ({
-            ...prev,
-            [slug]: [],
-          })
-        );
-      },
-      []
-    );
-
-  const handleSearchInResultsChange =
-    useCallback((val: string) => {
-      setSearchInResults(val);
-    }, []);
-
-  const handleSearchInResultsApply =
-    useCallback(() => {
-      setAppliedSearchInResults(
-        searchInResults.trim() || null
-      );
-    }, [searchInResults]);
-
-  const handleSearchInResultsClear =
-    useCallback(() => {
-      setSearchInResults("");
-      setAppliedSearchInResults(null);
-    }, []);
-
-  const isCategoryNotFound =
-    error &&
-    (error as any)?.status === 404;
-
-  // ─────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────
+  const isCategoryNotFound = error && (error as any)?.status === 404;
 
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen text-[#1e293b] dark:text-white"
-    >
+    <div dir="rtl" className="min-h-screen text-[#1e293b] dark:text-white">
       <div className="max-w-8xl mx-auto px-12 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-3">
             <SidebarFilters
               apiFilters={sidebarFilters}
-              activeFilters={activeFilters}
-              onFilterChange={
-                handleFilterChange
-              }
-              priceRange={priceRange}
-              onPriceChange={
-                setPriceRange
-              }
-              onPriceApply={
-                handlePriceApply
-              }
-              onPriceClear={
-                handlePriceClear
-              }
               minPrice={minPrice}
               maxPrice={maxPrice}
-              suggestedCategories={
-                suggestedCategories
-              }
-              isBrowsePage={
-                isBrowsePage
-              }
-              searchInResults={
-                searchInResults
-              }
-              onSearchInResultsChange={
-                handleSearchInResultsChange
-              }
-              onSearchInResultsApply={
-                handleSearchInResultsApply
-              }
-              onSearchInResultsClear={
-                handleSearchInResultsClear
-              }
+              suggestedCategories={suggestedCategories}
+              isBrowsePage={isBrowsePage}
               title={title}
-              popularCategories={
-                popularCategories
-              }
+              popularCategories={popularCategories}
             />
           </div>
 
           {/* Main */}
           <div className="lg:col-span-9 space-y-4">
-            <CategoryBreadcrumb
-              categories={breadcrumb}
-            />
+            <CategoryBreadcrumb categories={breadcrumb} />
 
             {title && (
               <h1 className="text-2xl py-4 font-bold text-[#1e293b] dark:text-white">
@@ -1784,24 +992,8 @@ function SearchContent() {
               </h1>
             )}
 
-            <TopFilterBar
-              filters={topFilters}
-              activeValues={
-                topFilterValues
-              }
-              onChange={
-                handleTopFilterChange
-              }
-            />
-
-            <ActiveFilterBadges
-              filters={
-                sidebarFilters
-              }
-              onClear={
-                handleClearFilterGroup
-              }
-            />
+            <TopFilterBar filters={topFilters} />
+            <ActiveFilterBadges filters={sidebarFilters} />
 
             {pagination && (
               <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -1809,24 +1001,15 @@ function SearchContent() {
               </div>
             )}
 
-            {shop && (
-              <ShopHeader shop={shop} />
-            )}
+            {shop && <ShopHeader shop={shop} />}
 
             {isCategoryNotFound ? (
               <CategoryNotFound />
             ) : (
-              <ProductResults
-                data={products}
-                isLoading={isPending}
-              />
+              <ProductResults data={products} isLoading={isPending} />
             )}
 
-            {/* Infinite Scroll Sentinel */}
-            <div
-              ref={sentinelRef}
-              className="h-10 w-full"
-            />
+            <div ref={sentinelRef} className="h-10 w-full" />
 
             {isFetchingNextPage && (
               <div className="flex items-center justify-center py-6">
@@ -1840,9 +1023,7 @@ function SearchContent() {
   );
 }
 
-// ─────────────────────────────────────────────
-// Export
-// ─────────────────────────────────────────────
+// ─── Export ──────────────────────────────────
 
 export default function SearchFilters() {
   return (
