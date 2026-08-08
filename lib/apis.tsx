@@ -189,13 +189,14 @@ export function useGetInfiniteShops(query?: string) {
   });
 }
 
-export function useGetShop(shop_id: number, slug: string) {
+export function useGetShop(shop_id: number) {
   return useQuery<any>({
-    queryKey: ['shops', shop_id, slug],
+    queryKey: ['shop', shop_id],
     queryFn: async () => {
-      const res = await axiosClient.get(`/shops/${shop_id}/${slug}`)
+      const res = await axiosClient.get(`/shops/${shop_id}`)
       return res.data
     },
+    enabled: !!shop_id
   })
 }
 
