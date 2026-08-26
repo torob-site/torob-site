@@ -47,15 +47,26 @@ export function useSearchFilters() {
   });
 
   // ── لوکال استیت برای دکمه اعمال قیمت ──
-  const [priceMinInput, setPriceMinInput] = useState(priceGt?.toString() ?? "");
-  const [priceMaxInput, setPriceMaxInput] = useState(priceLt?.toString() ?? "");
+  const [priceMinInput, setPriceMinInput] = useState(
+    priceGt?.toString() ?? "",
+  );
+
+  const [priceMaxInput, setPriceMaxInput] = useState(
+    priceLt?.toString() ?? "",
+  );
 
   const applyPrice = useCallback(() => {
     const min = priceMinInput.replace(/,/g, "");
     const max = priceMaxInput.replace(/,/g, "");
+
     setPriceGt(min ? Number(min) : null);
     setPriceLt(max ? Number(max) : null);
-  }, [priceMinInput, priceMaxInput, setPriceGt, setPriceLt]);
+  }, [
+    priceMinInput,
+    priceMaxInput,
+    setPriceGt,
+    setPriceLt,
+  ]);
 
   const clearPrice = useCallback(() => {
     setPriceMinInput("");
@@ -76,61 +87,120 @@ export function useSearchFilters() {
     setQ(null);
   }, [setQ]);
 
-  // ── تاپ فیلترها (flat در URL) ──
+  // ── تاپ فیلترها ──
   const topFilters = useMemo(() => {
     const result: Record<string, string | boolean> = {};
+
     searchParams.forEach((value, key) => {
       if (RESERVED_PARAMS.has(key)) return;
-      if (key === "brand") return;
+
+      // brand_id مربوط به sidebar است
+      if (key === "brand_id") return;
+
       if (key.startsWith("spec_")) return;
-      if (value === "true") result[key] = true;
-      else if (value === "false") result[key] = false;
-      else result[key] = value;
+
+      if (value === "true") {
+        result[key] = true;
+      } else if (value === "false") {
+        result[key] = false;
+      } else {
+        result[key] = value;
+      }
     });
+
     return result;
   }, [searchParams]);
 
   const setTopFilter = useCallback(
-    (key: string, value: string | boolean | null) => {
+    (
+      key: string,
+      value: string | boolean | null,
+    ) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value === null || value === false || value === "") {
+
+      if (
+        value === null ||
+        value === false ||
+        value === ""
+      ) {
         params.delete(key);
       } else {
         params.set(key, String(value));
       }
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+      router.replace(
+        `${pathname}?${params.toString()}`,
+        { scroll: false },
+      );
     },
     [searchParams, pathname, router],
   );
 
-  // ── سایدبار فیلترها (brand + spec_*) ──
+  // ── سایدبار فیلترها (brand_id + spec_*) ──
   const activeFilters = useMemo(() => {
     const result: ActiveFilters = {};
+
     searchParams.forEach((value, key) => {
-      if (key === "brand") {
-        result.brand = value.split(",").filter(Boolean);
+      // برند
+      if (key === "brand_id") {
+        result.brand_id = value
+          .split(",")
+          .filter(Boolean);
+
         return;
       }
+
+      // مشخصات
       if (key.startsWith("spec_")) {
         const slug = key.replace(/^spec_/, "");
-        result[slug] = value.split(",").filter(Boolean);
+
+        result[slug] = value
+          .split(",")
+          .filter(Boolean);
       }
     });
+
     return result;
   }, [searchParams]);
 
   const setActiveFilter = useCallback(
-    (groupId: string, optionId: string, isSingle: boolean) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const urlKey = groupId === "brand" ? "brand" : `spec_${groupId}`;
-      const current = activeFilters[groupId] || [];
+    (
+      groupId: string,
+      optionId: string,
+      isSingle: boolean,
+    ) => {
+      const params = new URLSearchParams(
+        searchParams.toString(),
+      );
+
+      // برند باید با brand_id در URL ذخیره شود
+      const urlKey =
+        groupId === "brand"
+          ? "brand_id"
+          : `spec_${groupId}`;
+
+      // چون activeFilters برند با brand_id ذخیره می‌شود
+      const activeGroupId =
+        groupId === "brand"
+          ? "brand_id"
+          : groupId;
+
+      const current =
+        activeFilters[activeGroupId] || [];
 
       let next: string[];
+
       if (isSingle) {
-        next = current.includes(optionId) || optionId === "" ? [] : [optionId];
+        next =
+          current.includes(optionId) ||
+          optionId === ""
+            ? []
+            : [optionId];
       } else {
         next = current.includes(optionId)
-          ? current.filter((id) => id !== optionId)
+          ? current.filter(
+              (id) => id !== optionId,
+            )
           : [...current, optionId];
       }
 
@@ -140,17 +210,36 @@ export function useSearchFilters() {
         params.delete(urlKey);
       }
 
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      router.replace(
+        `${pathname}?${params.toString()}`,
+        { scroll: false },
+      );
     },
-    [searchParams, pathname, router, activeFilters],
+    [
+      searchParams,
+      pathname,
+      router,
+      activeFilters,
+    ],
   );
 
   const clearActiveFilterGroup = useCallback(
     (groupId: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const urlKey = groupId === "brand" ? "brand" : `spec_${groupId}`;
+      const params = new URLSearchParams(
+        searchParams.toString(),
+      );
+
+      const urlKey =
+        groupId === "brand"
+          ? "brand_id"
+          : `spec_${groupId}`;
+
       params.delete(urlKey);
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+      router.replace(
+        `${pathname}?${params.toString()}`,
+        { scroll: false },
+      );
     },
     [searchParams, pathname, router],
   );
@@ -158,24 +247,68 @@ export function useSearchFilters() {
   // ── ساخت پارامترهای API ──
   const apiParams = useMemo(() => {
     const params: Record<string, any> = {};
-    if (query.trim()) params.query = query.trim();
-    if (q?.trim()) params.q = q.trim();
-    if (priceGt != null) params.price_gt = priceGt;
-    if (priceLt != null) params.price_lt = priceLt;
-    if (sort) params.sort = sort;
 
-    Object.entries(topFilters).forEach(([key, val]) => {
-      if (val !== null && val !== false && val !== "") params[key] = val;
-    });
+    if (query.trim()) {
+      params.query = query.trim();
+    }
 
-    Object.entries(activeFilters).forEach(([key, values]) => {
-      if (!values?.length) return;
-      if (key === "brand" && values[0]) params.brand_id = Number(values[0]);
-      else params[`spec_${key}`] = values.join(",");
-    });
+    if (q?.trim()) {
+      params.q = q.trim();
+    }
+
+    if (priceGt != null) {
+      params.price_gt = priceGt;
+    }
+
+    if (priceLt != null) {
+      params.price_lt = priceLt;
+    }
+
+    if (sort) {
+      params.sort = sort;
+    }
+
+    Object.entries(topFilters).forEach(
+      ([key, val]) => {
+        if (
+          val !== null &&
+          val !== false &&
+          val !== ""
+        ) {
+          params[key] = val;
+        }
+      },
+    );
+
+    Object.entries(activeFilters).forEach(
+      ([key, values]) => {
+        if (!values?.length) return;
+
+        // برند → brand_id
+        if (
+          key === "brand_id" &&
+          values[0]
+        ) {
+          params.brand_id = Number(values[0]);
+          return;
+        }
+
+        // specification → spec_id
+        params[`spec_${key}`] =
+          values.join(",");
+      },
+    );
 
     return params;
-  }, [query, q, priceGt, priceLt, sort, topFilters, activeFilters]);
+  }, [
+    query,
+    q,
+    priceGt,
+    priceLt,
+    sort,
+    topFilters,
+    activeFilters,
+  ]);
 
   const clearAllFilters = useCallback(() => {
     setQuery("");
@@ -183,39 +316,63 @@ export function useSearchFilters() {
     setSort("");
     setPriceGt(null);
     setPriceLt(null);
+
     setPriceMinInput("");
     setPriceMaxInput("");
     setSearchInput("");
-    router.replace(pathname, { scroll: false });
-  }, [setQuery, setQ, setSort, setPriceGt, setPriceLt, router, pathname]);
+
+    router.replace(pathname, {
+      scroll: false,
+    });
+  }, [
+    setQuery,
+    setQ,
+    setSort,
+    setPriceGt,
+    setPriceLt,
+    router,
+    pathname,
+  ]);
 
   return {
     query,
     setQuery,
+
     q,
     setQ,
+
     searchInput,
     setSearchInput,
     applySearch,
     clearSearch,
+
     sort,
     setSort,
+
     priceGt,
     setPriceGt,
+
     priceLt,
     setPriceLt,
+
     priceMinInput,
     setPriceMinInput,
+
     priceMaxInput,
     setPriceMaxInput,
+
     applyPrice,
     clearPrice,
+
     topFilters,
     setTopFilter,
+
     activeFilters,
     setActiveFilter,
     clearActiveFilterGroup,
+
     apiParams,
+
     clearAllFilters,
   };
 }
