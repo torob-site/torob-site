@@ -174,7 +174,11 @@ export default function ProductMap(props: any) {
 
   const { data, isLoading, error, refetch } = useGetProductMapOffers(product_id);
 
+  // ✅ تبدیل داده‌ها با safe access
   const sellers = data?.sellers ?? [];
+
+  // ✅ اطمینان از اینکه sellers یک آرایه است
+  const safeSellers = Array.isArray(sellers) ? sellers : [];
 
   const [activeSeller, setActiveSeller] = useState<any>(null);
   const [mapCenter, setMapCenter] = useState<any>(null);
@@ -189,10 +193,13 @@ export default function ProductMap(props: any) {
 
   /* ---------- Sync map center when data arrives ---------- */
   useEffect(() => {
-    if (sellers.length > 0 && !mapCenter) {
-      setMapCenter([sellers[0].shop.latitude, sellers[0].shop.longitude]);
+    if (safeSellers.length > 0 && !mapCenter) {
+      const firstSeller = safeSellers[0];
+      if (firstSeller?.shop?.latitude && firstSeller?.shop?.longitude) {
+        setMapCenter([firstSeller.shop.latitude, firstSeller.shop.longitude]);
+      }
     }
-  }, [sellers, mapCenter]);
+  }, [safeSellers, mapCenter]);
 
   /* ---------- Scroll to active card ---------- */
   useEffect(() => {
@@ -207,7 +214,9 @@ export default function ProductMap(props: any) {
   /* ---------- Handlers ---------- */
   const handleSellerClick = (seller: any) => {
     setActiveSeller(seller.id);
-    setMapCenter([seller.shop.latitude, seller.shop.longitude]);
+    if (seller?.shop?.latitude && seller?.shop?.longitude) {
+      setMapCenter([seller.shop.latitude, seller.shop.longitude]);
+    }
   };
 
   const openGallery = (images: any, startIndex: any) => {
@@ -223,8 +232,8 @@ export default function ProductMap(props: any) {
 
   /* ---------- Derived ---------- */
   const initialCenter: any =
-    sellers.length > 0
-      ? [sellers[0].shop.latitude, sellers[0].shop.longitude]
+    safeSellers.length > 0 && safeSellers[0]?.shop?.latitude && safeSellers[0]?.shop?.longitude
+      ? [safeSellers[0].shop.latitude, safeSellers[0].shop.longitude]
       : [35.6892, 51.389];
 
   const currentMapCenter = mapCenter ?? initialCenter;
@@ -260,25 +269,32 @@ export default function ProductMap(props: any) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapController center={currentMapCenter} />
-          {sellers.map((seller: any) => (
-            <Marker
-              key={seller.id}
-              position={[seller.shop.latitude, seller.shop.longitude]}
-              icon={createPriceMarker(
-                seller.price,
-                activeSeller === seller.id
-              )}
-              eventHandlers={{
-                click: () => {
-                  setActiveSeller(seller.id);
-                  setMapCenter([
-                    seller.shop.latitude,
-                    seller.shop.longitude,
-                  ]);
-                },
-              }}
-            />
-          ))}
+          {safeSellers.map((seller: any) => {
+            // ✅ بررسی وجود seller و shop
+            if (!seller?.shop?.latitude || !seller?.shop?.longitude) return null;
+
+            return (
+              <Marker
+                key={seller.id}
+                position={[seller.shop.latitude, seller.shop.longitude]}
+                icon={createPriceMarker(
+                  Number(seller.price) || 0,
+                  activeSeller === seller.id
+                )}
+                eventHandlers={{
+                  click: () => {
+                    setActiveSeller(seller.id);
+                    if (seller.shop.latitude && seller.shop.longitude) {
+                      setMapCenter([
+                        seller.shop.latitude,
+                        seller.shop.longitude,
+                      ]);
+                    }
+                  },
+                }}
+              />
+            );
+          })}
         </MapContainer>
       </div>
 
@@ -291,11 +307,11 @@ export default function ProductMap(props: any) {
           <div className="flex items-start gap-2">
             <h1
               className={`min-w-0 flex-1 leading-snug transition-all duration-200 ${isTitleExpanded
-                ? "whitespace-normal break-words text-base text-gray-900 dark:text-white"
-                : "truncate text-sm text-gray-500 dark:text-gray-400"
+                  ? "whitespace-normal break-words text-base text-gray-900 dark:text-white"
+                  : "truncate text-sm text-gray-500 dark:text-gray-400"
                 }`}
             >
-              {productName || data?.product_name}
+              {productName || data?.product_name || "محصول"}
             </h1>
             <div className="mt-0.5 shrink-0 rounded-full p-0.5 text-gray-400">
               <ChevronDown
@@ -337,7 +353,7 @@ export default function ProductMap(props: any) {
                 تلاش مجدد
               </button>
             </div>
-          ) : sellers.length === 0 ? (
+          ) : safeSellers.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 p-8 text-center">
               <MapPinned className="h-10 w-10 text-gray-300 dark:text-neutral-600" />
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -346,8 +362,16 @@ export default function ProductMap(props: any) {
             </div>
           ) : (
             <div className="space-y-4 p-3">
-              {sellers.map((seller: any) => {
-                const images = seller.shop.shopImages.map((img: any) => img.url);
+              {safeSellers.map((seller: any) => {
+                // ✅ safe access برای images
+                const images = seller?.shop?.shopImages?.map((img: any) => img.url) ?? [];
+                const warrantyTitle = seller?.warranty?.title ?? "گارانتی";
+                const warrantyDuration = seller?.warranty_duration ?? 0;
+                const price = Number(seller?.price) || 0;
+                const shopName = seller?.shop?.shop_name ?? "فروشگاه";
+                const cityName = seller?.shop?.city?.name ?? "شهر";
+                const address = seller?.shop?.address ?? "آدرس";
+                const description = seller?.description ?? "";
 
                 return (
                   <div
@@ -357,8 +381,8 @@ export default function ProductMap(props: any) {
                     }}
                     onClick={() => handleSellerClick(seller)}
                     className={`cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-200 ${activeSeller === seller.id
-                      ? "border-blue-500 shadow-lg dark:border-blue-400"
-                      : "border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+                        ? "border-blue-500 shadow-lg dark:border-blue-400"
+                        : "border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900"
                       }`}
                   >
                     {/* Thumbnails */}
@@ -372,8 +396,8 @@ export default function ProductMap(props: any) {
                           <div
                             key={idx}
                             className={`relative h-16 w-1/3 overflow-hidden rounded-lg ${isEmpty
-                              ? "bg-gray-100 dark:bg-neutral-800"
-                              : ""
+                                ? "bg-gray-100 dark:bg-neutral-800"
+                                : ""
                               }`}
                             onClick={(e) => {
                               if (img) {
@@ -409,10 +433,10 @@ export default function ProductMap(props: any) {
                     <div className="flex items-center justify-between px-3 py-3">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-900 dark:text-white">
-                          {seller.shop.shop_name}
+                          {shopName}
                         </h3>
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-neutral-800 dark:text-gray-400">
-                          {seller.shop.city.name}
+                          {cityName}
                         </span>
                       </div>
                       <button
@@ -427,22 +451,21 @@ export default function ProductMap(props: any) {
                     {/* Address */}
                     <div className="flex items-start gap-1.5 px-3 pb-3 text-sm text-gray-900 dark:text-gray-400">
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{seller.shop.address}</span>
+                      <span>{address}</span>
                     </div>
 
                     {/* Warranty + description */}
                     <div className="flex items-start gap-1.5 px-3 pb-6 text-[13px] text-gray-500 dark:text-gray-400">
                       <div className="min-w-0 flex-1 leading-relaxed">
                         <span>
-                          گارانتی {seller.warranty_duration} ماهه{" "}
-                          {seller.warranty.title}
+                          گارانتی {warrantyDuration} ماهه {warrantyTitle}
                         </span>
-                        {seller.description && (
+                        {description && (
                           <>
                             <span className="mx-1 text-gray-300 dark:text-neutral-600">
                               |
                             </span>
-                            <span>{seller.description}</span>
+                            <span>{description}</span>
                           </>
                         )}
                       </div>
@@ -452,7 +475,7 @@ export default function ProductMap(props: any) {
                     <div className="flex items-center justify-between border-t border-gray-100 px-3 py-3 dark:border-neutral-800">
                       <div className="flex items-baseline gap-1">
                         <span className="text-xl font-black text-blue-600 dark:text-blue-400">
-                          {formatPrice(seller.price)}
+                          {formatPrice(price)}
                         </span>
                         <span className="text-xs text-gray-400">تومان</span>
                       </div>
@@ -528,7 +551,7 @@ export default function ProductMap(props: any) {
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                {contactSeller.shop.shop_name}
+                {contactSeller?.shop?.shop_name ?? "فروشگاه"}
               </h3>
               <button
                 onClick={() => setContactOpen(false)}
@@ -539,7 +562,7 @@ export default function ProductMap(props: any) {
             </div>
 
             <div className="space-y-3">
-              {contactSeller.shop.shopContacts
+              {contactSeller?.shop?.shopContacts
                 ?.filter((c: any) => c.platform === "PHONE")
                 .map((contact: any) => (
                   <a
@@ -566,7 +589,7 @@ export default function ProductMap(props: any) {
                 ))}
 
               <div className="grid grid-cols-3 gap-2">
-                {contactSeller.shop.shopContacts
+                {contactSeller?.shop?.shopContacts
                   ?.filter((c: any) => c.platform !== "PHONE")
                   .map((contact: any) => {
                     const cfg = getContactConfig(contact.platform);
@@ -587,15 +610,17 @@ export default function ProductMap(props: any) {
                   })}
               </div>
 
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${contactSeller.shop.latitude},${contactSeller.shop.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl bg-orange-50 py-3 text-sm font-medium text-orange-700 transition hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:hover:bg-orange-950/50"
-              >
-                <Navigation className="h-4 w-4" />
-                مسیریابی
-              </a>
+              {contactSeller?.shop?.latitude && contactSeller?.shop?.longitude && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${contactSeller.shop.latitude},${contactSeller.shop.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-orange-50 py-3 text-sm font-medium text-orange-700 transition hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:hover:bg-orange-950/50"
+                >
+                  <Navigation className="h-4 w-4" />
+                  مسیریابی
+                </a>
+              )}
             </div>
           </div>
         </div>
