@@ -42,8 +42,10 @@ import { useSearchFilters } from "../hooks/use-search-filters";
 // ─── Types ───────────────────────────────────
 
 interface ApiFilterItem {
+  id?: string | number;
   value?: string | number;
   name?: string;
+  name_en?: string;
   slug?: string;
 }
 
@@ -96,11 +98,10 @@ function DropdownFilter({
                   onChange(filter.slug, selectedValue === value ? null : value);
                   setOpen(false);
                 }}
-                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${
-                  selectedValue === value
-                    ? "text-blue-500 dark:text-blue-400"
-                    : "text-gray-700 dark:text-gray-300"
-                }`}
+                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${selectedValue === value
+                  ? "text-blue-500 dark:text-blue-400"
+                  : "text-gray-700 dark:text-gray-300"
+                  }`}
               >
                 {item.name || value}
               </button>
@@ -305,13 +306,6 @@ function PriceFilter({
 
       {expanded && (
         <div className="pb-4 space-y-3">
-          {minPrice !== undefined && maxPrice !== undefined && (
-            <div className="text-xs text-gray-500 px-1">
-              رنج قیمت: {minPrice.toLocaleString("fa-IR")} -{" "}
-              {maxPrice.toLocaleString("fa-IR")} تومان
-            </div>
-          )}
-
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">از</span>
             <div className="relative flex-1">
@@ -385,7 +379,7 @@ function SidebarFilters({
   title?: string;
   popularCategories?: { id: number; title: string; url: string }[];
 }) {
-  const { setActiveFilter } = useSearchFilters();
+  const { setActiveFilter, activeFilters } = useSearchFilters();
 
   const handleFilterChange = (groupId: string, optionId: string) => {
     const currentFilter = apiFilters.find((f) => f.slug === groupId);
@@ -402,8 +396,14 @@ function SidebarFilters({
           <DynamicFilterGroup
             key={filter.slug}
             filter={filter}
-            selected={useSearchFilters().activeFilters[filter.slug] || []}
-            onChange={handleFilterChange}
+
+            selected={
+              activeFilters[
+              filter.slug === "brand"
+                ? "brand_id"
+                : filter.slug
+              ] || []
+            } onChange={handleFilterChange}
           />
         ))}
 
@@ -422,7 +422,11 @@ function SidebarFilters({
   );
 }
 
-function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
+function ActiveFilterBadges({
+  filters,
+}: {
+  filters: ApiFilter[];
+}) {
   const {
     activeFilters,
     clearActiveFilterGroup,
@@ -435,11 +439,18 @@ function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
     setQ,
   } = useSearchFilters();
 
-  const badges: { label: string; onClear: () => void }[] = [];
+  const badges: {
+    label: string;
+    onClear: () => void;
+  }[] = [];
 
-  // Top filter badges
+  // ── Top filter badges ──
   filters.forEach((f) => {
-    if (f.badge_text && topFilters[f.slug] != null && topFilters[f.slug] !== false) {
+    if (
+      f.badge_text &&
+      topFilters[f.slug] != null &&
+      topFilters[f.slug] !== false
+    ) {
       badges.push({
         label: f.badge_text,
         onClear: () => setTopFilter(f.slug, null),
@@ -447,33 +458,60 @@ function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
     }
   });
 
-  // Sidebar badges — گروهی
-  Object.entries(activeFilters).forEach(([slug, values]) => {
-    if (!values?.length) return;
-    const filter = filters.find((f) => f.slug === slug);
-    if (!filter) return;
+  // ── Sidebar badges ──
+  Object.entries(activeFilters).forEach(
+    ([slug, values]) => {
+      if (!values?.length) return;
 
-    // اسم هر مقدار رو پیدا کن
-    const names = values.map((v) => {
-      const item = filter.items?.find((i) => String(i.value || i.slug) === v);
-      return item?.name || v;
-    });
+      const filter = filters.find((f) => {
+        if (slug === "brand_id") {
+          return f.slug === "brand";
+        }
+        return f.slug === slug;
+      });
 
-    // یه badge برای کل گروه
-    badges.push({
-      label: `${filter.title}: ${names.join(" و ")}`,  // ← "رم: ۱۲ و ۳۲"
-      onClear: () => clearActiveFilterGroup(slug),
-    });
-  });
+      if (!filter) return;
 
-  // Price badge
+      const names = values.map((v) => {
+        if (slug === "brand_id") {
+          const item = filter.items?.find(
+            (i) => String(i.id) === String(v),
+          );
+          return item?.name || v;
+        }
+
+        const item = filter.items?.find(
+          (i) => String(i.value ?? i.slug) === String(v),
+        );
+        return item?.name || v;
+      });
+
+      badges.push({
+        label: `${filter.title}: ${names.join(" و ")}`,
+        onClear: () => {
+          console.log('clearing slug:', slug);
+          // اگر brand_id بود، brand رو پاک کن
+          if (slug === "brand_id") {
+            clearActiveFilterGroup("brand");
+          } else {
+            clearActiveFilterGroup(slug);
+          }
+        }
+      });
+    },
+  );
+
+  // ── Price badge ──
   if (priceGt != null || priceLt != null) {
     badges.push({
-      label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"} تا ${priceLt?.toLocaleString("fa-IR") || "∞"}`,
+      label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"
+        } تا ${priceLt?.toLocaleString("fa-IR") || "∞"
+        }`,
       onClear: clearPrice,
     });
   }
 
+  // ── Search badge ──
   if (q) {
     badges.push({
       label: `جستجو: ${q}`,
@@ -492,6 +530,7 @@ function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
           className="flex py-4 gap-3 items-center dark:text-white text-black bg-gray-100 dark:bg-[#212b36] border border-gray-300 dark:border-white rounded-full px-3 cursor-pointer"
         >
           <span>{badge.label}</span>
+
           <XIcon className="w-4 h-4" />
         </Badge>
       ))}
@@ -548,7 +587,7 @@ function DynamicFilterGroup({
       {expanded && (
         <div className="pb-3 space-y-1">
           {displayItems.map((item, idx) => {
-            const value = String(item.value || item.slug || item.name);
+            const value = String(item.id);
             const label = item.name || value;
             return (
               <label
@@ -557,19 +596,16 @@ function DynamicFilterGroup({
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex items-center justify-center transition ${
-                      isSingle
-                        ? `w-4 h-4 rounded-full border ${
-                            isSelected(value)
-                              ? "border-blue-500"
-                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
-                          }`
-                        : `w-4 h-4 rounded border ${
-                            isSelected(value)
-                              ? "bg-blue-500 border-blue-500"
-                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
-                          }`
-                    }`}
+                    className={`flex items-center justify-center transition ${isSingle
+                      ? `w-4 h-4 rounded-full border ${isSelected(value)
+                        ? "border-blue-500"
+                        : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
+                      }`
+                      : `w-4 h-4 rounded border ${isSelected(value)
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
+                      }`
+                      }`}
                   >
                     {isSelected(value) &&
                       (isSingle ? (
@@ -796,7 +832,7 @@ function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }
   }));
 
   return (
-    <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid-cols-2 gap-6">
+    <div className="grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 grid-cols-2 gap-6">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
@@ -938,7 +974,6 @@ function SearchContent() {
   const breadcrumb = firstPage?.breadcrumb || [];
   const sidebarFilters: ApiFilter[] = firstPage?.filters1 || [];
   const topFilters: ApiFilter[] = firstPage?.filters2 || [];
-  const pagination = firstPage?.pagination;
   const minPrice = firstPage?.min_price;
   const maxPrice = firstPage?.max_price;
   const suggestedCategories = firstPage?.suggested_categories || [];
@@ -994,12 +1029,6 @@ function SearchContent() {
 
             <TopFilterBar filters={topFilters} />
             <ActiveFilterBadges filters={sidebarFilters} />
-
-            {pagination && (
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {pagination.total} محصول یافت شد
-              </div>
-            )}
 
             {shop && <ShopHeader shop={shop} />}
 
