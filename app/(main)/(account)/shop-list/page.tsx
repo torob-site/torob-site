@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetInfiniteShops } from "@/lib/apis";
 import { Search } from "lucide-react";
+import Link from "next/link";
 
 export default function Shops() {
   const [query, setQuery] = useState("");
@@ -98,20 +99,22 @@ export default function Shops() {
         <div className="grid grid-cols-3 gap-5 mt-10">
           {shops.length > 0 ? (
             shops.map((shop) => (
+              <Link href={`/shop/${shop.id}/${shop.shop_name}`}>
               <div
                 key={shop.id}
                 className="flex items-center gap-4 h-20 w-72 border rounded-lg px-5 border-[#cbd5e1] dark:border-[#475569] cursor-pointer"
               >
                 <img
                   className="w-12 h-12 rounded-lg"
-                  src={shop.logo}
-                  alt={shop.name}
+                  src={shop.shop_logo}
+                  alt={shop.shop_name}
                 />
 
                 <p className="text-sm text-[#1e293b] dark:text-[#f1f5f9]">
-                  {shop.name}
+                  {shop.shop_name}
                 </p>
               </div>
+              </Link>
             ))
           ) : (
             <p className="col-span-3 text-center text-slate-500">
