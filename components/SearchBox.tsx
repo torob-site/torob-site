@@ -2,7 +2,7 @@
 "use client";
 
 import { useGetAutoComplete } from "@/lib/apis";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export type Suggestion = {
@@ -34,6 +34,8 @@ type SearchBoxProps = {
 };
 
 export default function SearchBox({ children }: SearchBoxProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [query, setQuery] = useState(searchParams.get("query") || "");
@@ -76,14 +78,40 @@ export default function SearchBox({ children }: SearchBoxProps) {
     setSelectedIndex(-1);
   }
 
+  // تابع کمکی برای ناوبری هوشمند
+  function navigateToSearch(searchQuery: string) {
+    if (!searchQuery.trim()) return;
+    
+    const trimmedQuery = searchQuery.trim();
+    const currentQuery = searchParams.get("query");
+    
+    // اگر در صفحه جستجو هستیم و query یکسان است، هیچ کاری نکن
+    if (pathname === "/search" && currentQuery === trimmedQuery) {
+      setOpen(false);
+      return;
+    }
+    
+    const searchUrl = `/search?query=${encodeURIComponent(trimmedQuery)}`;
+    
+    // اگر در صفحه جستجو هستیم، از router.push استفاده کن
+    if (pathname === "/search") {
+      router.push(searchUrl);
+    } else {
+      // در غیر این صورت از window.location استفاده کن
+      window.location.href = searchUrl;
+    }
+    
+    setOpen(false);
+  }
+
   function selectSuggestion(text: string) {
     if (!text.trim()) return;
-    window.location.href = `/search?query=${encodeURIComponent(text)}`;
+    navigateToSearch(text);
   }
 
   function handleSearch() {
     if (!query.trim()) return;
-    window.location.href = `/search?query=${encodeURIComponent(query)}`;
+    navigateToSearch(query);
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
