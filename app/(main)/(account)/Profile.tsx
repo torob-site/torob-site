@@ -1,26 +1,27 @@
 "use client";
-import City from "@/components/city";
+import CitySelector from "@/components/city";
 import Theme from "@/components/theme";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { useGetUser } from "@/lib/apis";
+import { ChevronDown, MapPin } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export default function Profile() {
+  const { data: user, isPending: userLoading } = useGetUser();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   return (
     <div className="dark:bg-[#212b36] border-t border-b border-[#f1f5f9] dark:border-[#15202b] space-y-6 px-6 bg-[#ffffff] dark:text-white text-black dark:fill-white fill-black w-64 py-4">
       <Link
         href="/user/alerts"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/alerts" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/alerts" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           width="24"
@@ -36,9 +37,8 @@ export default function Profile() {
       </Link>
       <Link
         href="/user/favorites"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/favorites" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/favorites" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           width="24"
@@ -54,9 +54,8 @@ export default function Profile() {
       </Link>
       <Link
         href="/user/history"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/history" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/history" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           width="24"
@@ -72,9 +71,8 @@ export default function Profile() {
       </Link>
       <Link
         href="/user/reports"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/reports" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/reports" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +86,31 @@ export default function Profile() {
         </svg>
         <p>گزارش‌های من</p>
       </Link>
-      <City />
+
+      <CitySelector
+        className="
+    flex
+    w-full
+    items-center
+    gap-3
+    text-sm
+    text-[#1e293b]
+    dark:text-white
+  "
+      >
+        <MapPin
+          size={22}
+          strokeWidth={2}
+          className="shrink-0"
+        />
+
+        <span>
+          شهر من :{" "}
+          {userLoading
+            ? "در حال بارگذاری..."
+            : user?.city?.name ?? "انتخاب شهر"}
+        </span>
+      </CitySelector>
       <Theme title="ظاهر برنامه" />
       <div className="border-b border-[#f1f5f9] dark:border-[#15202b]"></div>
 
@@ -105,9 +127,8 @@ export default function Profile() {
       <div className="border-b border-[#f1f5f9] dark:border-[#15202b]"></div>
       <Link
         href="/user/purchases"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/purchases" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/purchases" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           width="22"
@@ -129,9 +150,8 @@ export default function Profile() {
       </Link>
       <Link
         href="/user/tickets"
-        className={`flex items-center gap-3 text-sm ${
-          pathname === "/user/tickets" ? "text-[#d73948] fill-[#d73948]" : ""
-        }`}
+        className={`flex items-center gap-3 text-sm ${pathname === "/user/tickets" ? "text-[#d73948] fill-[#d73948]" : ""
+          }`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
