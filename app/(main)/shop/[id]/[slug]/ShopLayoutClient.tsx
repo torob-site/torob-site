@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, MapPin, Search } from "lucide-react"
+import { ChevronDown, ChevronUp, Home, MapPin, Search } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import {
@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useGetShop } from "@/lib/apis"
 import { useShopFilters } from "./use-shop-filters"
+import { useState } from "react"
+import { useSearchFilters } from "@/hooks/use-search-filters"
+import { ShopProvider } from "./ShopContext"
 
 function TabLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname()
@@ -40,57 +43,125 @@ function ShopSidebarFilters() {
     applyPrice, clearPrice,
     searchInput, setSearchInput,
     applySearch, clearSearch,
-  } = useShopFilters()
+  } = useShopFilters();
+  const [expandedPrice, setExpandedPrice] = useState(true);
+  const [expandedQuery, setExpandedQuery] = useState(true);
+
 
   return (
-    <div className="px-8 py-6 border-t border-[#f1f5f9] dark:border-[#15202b] space-y-5">
-      <h3 className="text-sm font-bold dark:text-white">فیلتر محصولات</h3>
+    <div className="px-8 space-y-5">
+       <div className="border-b border-gray-200 py-3 dark:border-gray-800">
+      <button
+        onClick={() => setExpandedQuery(!expandedQuery)}
+        className="w-full flex items-center justify-between py-4 px-1 text-sm font-medium"
+      >
+        <span>جستجو در نتایج</span>
+        {expandedQuery ? (
+          <ChevronUp className="w-4 h-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        )}
+      </button>
 
-      <div className="space-y-2">
-        <label className="text-xs text-[#94a3b8]">جستجو در محصولات</label>
-        <div className="relative">
-          <Input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applySearch()}
-            placeholder="نام محصول را بنویسید..."
-            className="bg-white dark:bg-[#1a232e] border-[#e2e8f0] dark:border-[#2d3a4a] text-sm pr-10"
-          />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {expandedQuery && (
+        <div className="pb-4 space-y-3">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="جستجو در نتایج..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") applySearch();
+              }}
+              className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-right pr-10 h-10"
+            />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={clearSearch}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
+            >
+              حذف
+            </button>
+            <button
+              onClick={applySearch}
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
+            >
+              اعمال
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+    </div>
 
-      <div className="space-y-2">
-        <label className="text-xs text-[#94a3b8]">محدوده قیمت (تومان)</label>
-        <div className="flex items-center gap-2">
-          <Input
-            type="text" inputMode="numeric"
-            value={priceMinInput}
-            onChange={(e) => setPriceMinInput(e.target.value)}
-            placeholder="از"
-            className="bg-white dark:bg-[#1a232e] border-[#e2e8f0] dark:border-[#2d3a4a] text-sm text-left"
-          />
-          <span className="text-[#94a3b8] text-xs">تا</span>
-          <Input
-            type="text" inputMode="numeric"
-            value={priceMaxInput}
-            onChange={(e) => setPriceMaxInput(e.target.value)}
-            placeholder="تا"
-            className="bg-white dark:bg-[#1a232e] border-[#e2e8f0] dark:border-[#2d3a4a] text-sm text-left"
-          />
+     <div>
+      <button
+        onClick={() => setExpandedPrice(!expandedPrice)}
+        className="w-full flex items-center justify-between py-3 px-1 text-sm font-medium text-[#1e293b] dark:text-white"
+      >
+        <span>قیمت</span>
+        {expandedPrice ? (
+          <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        )}
+      </button>
+
+      {expandedPrice && (
+        <div className="pb-4 space-y-3">
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">از</span>
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={priceMinInput}
+                onChange={(e) => setPriceMinInput(e.target.value)}
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">تا</span>
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={priceMaxInput}
+                onChange={(e) => setPriceMaxInput(e.target.value)}
+                className="bg-[#ffffff] dark:bg-[#0f172a] border-gray-300 dark:border-gray-700 text-sm text-left pl-16 h-10"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                تومان
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={clearPrice}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-sm"
+            >
+              حذف
+            </button>
+            <button
+              onClick={applyPrice}
+              className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
+            >
+              اعمال فیلتر
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="flex gap-2">
-        <button onClick={clearPrice} className="flex-1 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-xs">حذف قیمت</button>
-        <button onClick={applyPrice} className="flex-1 py-2 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-xs font-medium">اعمال فیلتر</button>
-      </div>
-
-      <div className="flex gap-2">
-        <button onClick={clearSearch} className="flex-1 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-xs">حذف جستجو</button>
-        <button onClick={applySearch} className="flex-1 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium">جستجو</button>
-      </div>
+      )}
+    </div>
     </div>
   )
 }
@@ -163,9 +234,9 @@ export default function ShopLayoutClient({
               {(shop.province || shop.city) && (
                 <div className="flex items-center text-[#94a3b8] mt-1 text-xs gap-1">
                   <MapPin className="w-3 h-3" />
-                  <p>{shop.province}</p>
-                  {shop.city && <span>,</span>}
-                  <p>{shop.city}</p>
+                  <p>{shop.province.name}</p>
+                  {shop.city.name && <span>,</span>}
+                  <p>{shop.city.name}</p>
                 </div>
               )}
             </div>
@@ -179,7 +250,9 @@ export default function ShopLayoutClient({
           {isProductPage && <ShopSidebarFilters />}
         </div>
       </aside>
+      <ShopProvider shop={shop}>
       <main className="flex-1">{children}</main>
+      </ShopProvider>
     </div>
   )
 }
