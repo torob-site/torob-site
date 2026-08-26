@@ -4,17 +4,13 @@
 import Menu from "@/components/menu";
 import Theme from "@/components/theme";
 import User from "@/components/user";
-import SearchBox, { Suggestion } from "@/components/SearchBox";
+import SearchBox from "@/components/SearchBox";
 
 import { Camera, Search, History } from "lucide-react";
 
 import Link from "next/link";
 
 export default function Navbar() {
-  function handleSearch(query: string) {
-    if (!query.trim()) return;
-    window.location.href = `/search?query=${encodeURIComponent(query)}`;
-  }
 
   return (
     <div className="w-full flex items-center dark:bg-[#212b36] h-auto px-12 py-4 bg-[#ffffff]">
