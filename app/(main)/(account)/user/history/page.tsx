@@ -5,10 +5,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { useDeleteUserHistories, useGetUser, useGetUserAlerts, useGetUserFavorites, useGetUserHistories } from "@/lib/apis";
 
 export default function History() {
-  const { data, isPending, error } = useGetUserHistories()
+  const { data: histories = [], isPending, error } = useGetUserHistories()
   const { data: user } = useGetUser();
-  const { data: favoriteIds = [] } = useGetUserFavorites(true, { enabled: !!user?.phone, });
-  const { data: alertIds = [] } = useGetUserAlerts(true, { enabled: !!user?.phone, });
+  const { data: favoriteIds = [] } = useGetUserFavorites(true, { enabled: !!user?.phone && histories.length > 0, });
+  const { data: alertIds = [] } = useGetUserAlerts(true, { enabled: !!user?.phone && histories.length > 0, });
   const { mutate: deleteHistories, isPending: isDeleting } = useDeleteUserHistories();
   const favoriteSet = new Set(favoriteIds);
   const alertSet = new Set(alertIds);
@@ -21,7 +21,7 @@ export default function History() {
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!histories || histories.length === 0) {
     return (
       <div className="flex flex-col w-full items-center justify-center">
         <img
@@ -36,7 +36,7 @@ export default function History() {
     );
   }
 
-  const products = data.map((product: any) => ({
+  const products = histories.map((product: any) => ({
     ...product,
     is_favorite: favoriteSet.has(product.id),
     is_alert: alertSet.has(product.id),
@@ -54,7 +54,7 @@ export default function History() {
       </p>
     </div>
 
-    <div className="grid mt-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 grid-cols-2 gap-6">
+    <div className="grid mt-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 grid-cols-2 gap-6">
       {products.map((product: any) => (
         <ProductCard
           key={product.id}
