@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import QueryProvider from "@/components/query-provider";
 import AuthProvider from "@/components/auth-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-
+import { Toaster } from "sonner";
 const myFont = localFont({
   src: [
     {
@@ -32,8 +32,9 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <TooltipProvider>
               <AuthProvider>
-                   <NuqsAdapter>
+                <NuqsAdapter>
                   {children}
+                  <Toaster />
                 </NuqsAdapter>
               </AuthProvider>
             </TooltipProvider>
