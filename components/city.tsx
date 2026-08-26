@@ -229,7 +229,7 @@ const filteredProvinces = search.trim()
             sm:rounded-2xl
           "
         >
-          <style jsx>{`
+          <style>{`
             .no-scrollbar::-webkit-scrollbar {
               display: none;
             }

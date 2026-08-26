@@ -39,7 +39,6 @@ import {
 import { Badge } from "./ui/badge";
 import { useSearchFilters } from "../hooks/use-search-filters";
 
-// ─── Types ───────────────────────────────────
 
 interface ApiFilterItem {
   id?: string | number;
@@ -58,7 +57,6 @@ interface ApiFilter {
   items?: ApiFilterItem[];
 }
 
-// ─── Dropdown Filter ─────────────────────────
 
 function DropdownFilter({
   filter,
@@ -113,7 +111,6 @@ function DropdownFilter({
   );
 }
 
-// ─── Toggle Filter ───────────────────────────
 
 function ToggleFilter({
   filter,
@@ -139,7 +136,6 @@ function ToggleFilter({
   );
 }
 
-// ─── Toggle Group Filter ─────────────────────
 
 function ToggleGroupFilter({
   filter,
@@ -180,7 +176,6 @@ function ToggleGroupFilter({
   );
 }
 
-// ─── Toggle Icon Filter ──────────────────────
 
 function ToggleIconFilter({
   filter,
@@ -209,7 +204,6 @@ function ToggleIconFilter({
 }
 
 
-// ─── Top Filter Bar ──────────────────────────
 
 function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
   const { topFilters, setTopFilter } = useSearchFilters();
@@ -271,7 +265,6 @@ function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
   );
 }
 
-// ─── Price Filter (با دکمه اعمال) ───────────
 
 function PriceFilter({
   minPrice,
@@ -360,7 +353,6 @@ function PriceFilter({
   );
 }
 
-// ─── Sidebar Filters ─────────────────────────
 
 function SidebarFilters({
   apiFilters,
@@ -444,7 +436,6 @@ function ActiveFilterBadges({
     onClear: () => void;
   }[] = [];
 
-  // ── Top filter badges ──
   filters.forEach((f) => {
     if (
       f.badge_text &&
@@ -458,7 +449,6 @@ function ActiveFilterBadges({
     }
   });
 
-  // ── Sidebar badges ──
   Object.entries(activeFilters).forEach(
     ([slug, values]) => {
       if (!values?.length) return;
@@ -490,7 +480,6 @@ function ActiveFilterBadges({
         label: `${filter.title}: ${names.join(" و ")}`,
         onClear: () => {
           console.log('clearing slug:', slug);
-          // اگر brand_id بود، brand رو پاک کن
           if (slug === "brand_id") {
             clearActiveFilterGroup("brand");
           } else {
@@ -501,7 +490,6 @@ function ActiveFilterBadges({
     },
   );
 
-  // ── Price badge ──
   if (priceGt != null || priceLt != null) {
     badges.push({
       label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"
@@ -511,7 +499,6 @@ function ActiveFilterBadges({
     });
   }
 
-  // ── Search badge ──
   if (q) {
     badges.push({
       label: `جستجو: ${q}`,
@@ -538,7 +525,6 @@ function ActiveFilterBadges({
   );
 }
 
-// ─── Dynamic Sidebar Filter ──────────────────
 
 function DynamicFilterGroup({
   filter,
@@ -651,7 +637,6 @@ function DynamicFilterGroup({
   );
 }
 
-// ─── Suggested Categories ────────────────────
 
 function SuggestedCategories({
   categories,
@@ -692,7 +677,6 @@ function SuggestedCategories({
 }
 
 
-// ─── Search In Results (با دکمه اعمال) ───────
 
 function SearchInResults() {
   const [expanded, setExpanded] = useState(true);
@@ -748,7 +732,6 @@ function SearchInResults() {
   );
 }
 
-// ─── Price List ──────────────────────────────
 
 function PriceListLink({ title, href }: { title?: string; href?: string }) {
   if (!title) return null;
@@ -764,7 +747,6 @@ function PriceListLink({ title, href }: { title?: string; href?: string }) {
   );
 }
 
-// ─── Popular Categories ──────────────────────
 
 function PopularCategories({
   categories,
@@ -793,7 +775,6 @@ function PopularCategories({
 }
 
 
-// ─── Product Results ─────────────────────────
 
 function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }) {
   const { data: user } = useGetUser();
@@ -840,7 +821,6 @@ function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }
   );
 }
 
-// ─── Shop Header ─────────────────────────────
 
 function ShopHeader({ shop }: { shop: any }) {
   const [query, setQuery] = useState("");
@@ -878,7 +858,6 @@ function ShopHeader({ shop }: { shop: any }) {
   );
 }
 
-// ─── Breadcrumb ──────────────────────────────
 
 function CategoryBreadcrumb({
   categories,
@@ -913,7 +892,6 @@ function CategoryBreadcrumb({
 
 
 
-// ─── Category Not Found ──────────────────────
 
 function CategoryNotFound() {
   return (
@@ -931,7 +909,6 @@ function CategoryNotFound() {
   );
 }
 
-// ─── Search Content (nuqs) ───────────────────
 
 function SearchContent() {
   const pathname = usePathname();
@@ -983,7 +960,6 @@ function SearchContent() {
   const fetchNextPageRef = useRef<any>(null);
   fetchNextPageRef.current = fetchNextPage;
 
-  // Infinite Scroll
   useEffect(() => {
     if (!sentinelRef.current || !hasNextPage) return;
     const observer = new IntersectionObserver(
@@ -1004,7 +980,6 @@ function SearchContent() {
     <div dir="rtl" className="min-h-screen text-[#1e293b] dark:text-white">
       <div className="max-w-8xl mx-auto px-12 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-3">
             <SidebarFilters
               apiFilters={sidebarFilters}
@@ -1017,7 +992,6 @@ function SearchContent() {
             />
           </div>
 
-          {/* Main */}
           <div className="lg:col-span-9 space-y-4">
             <CategoryBreadcrumb categories={breadcrumb} />
 
@@ -1052,7 +1026,6 @@ function SearchContent() {
   );
 }
 
-// ─── Export ──────────────────────────────────
 
 export default function SearchFilters() {
   return (

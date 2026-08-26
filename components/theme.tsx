@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Monitor, Moon, Sun, Check } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -12,7 +13,12 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function Theme({ title }: { title?: string }) {
+  const [mounted, setMounted] = useState(false);
   const { setTheme, theme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const themes = [
     {
@@ -59,9 +65,15 @@ export default function Theme({ title }: { title?: string }) {
           )}
         >
           <span className="relative flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 transition-colors group-hover:bg-white dark:group-hover:bg-gray-700">
-            {current === "light" && <Sun size={16} />}
-            {current === "dark" && <Moon size={16} />}
-            {current === "system" && <Monitor size={16} />}
+            {mounted ? (
+              <>
+                {current === "light" && <Sun size={16} />}
+                {current === "dark" && <Moon size={16} />}
+                {current === "system" && <Monitor size={16} />}
+              </>
+            ) : (
+              <Monitor size={16} />
+            )}
           </span>
           {title && (
             <span className="text-sm font-medium text-gray-700 dark:text-gray-200">

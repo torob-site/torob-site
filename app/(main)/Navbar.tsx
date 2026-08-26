@@ -1,7 +1,6 @@
 // ─── Navbar.tsx ───
 "use client";
 
-import Menu from "@/components/menu";
 import Theme from "@/components/theme";
 import User from "@/components/user";
 import SearchBox from "@/components/SearchBox";
@@ -151,7 +150,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <Menu />
+
       </div>
     </div>
   );
