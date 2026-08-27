@@ -69,6 +69,12 @@ export default function Reports() {
                 اگر مشکلی در قیمت یا موجودی محصولی مشاهده کردید، از صفحه گزارش
                 دهید.
               </p>
+              <Link href="/user/create-report" className="w-full">
+                <div className="flex items-center gap-2 justify-center py-3 mt-4 bg-[#1e293b] text-[#f8fafc] rounded-lg">
+                  <p className="font-bold text-sm">ثبت گزارش از مشاهدات اخیر</p>
+                  <ChevronLeft size={18} />
+                </div>
+              </Link>
             </div>
           ) : (
             <>

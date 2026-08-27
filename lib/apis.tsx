@@ -364,6 +364,17 @@ export function useGetProductMapOffers(product_id: number) {
   });
 }
 
+export function useGetProductOffers(product_id: number) {
+  return useQuery<any>({
+    queryKey: ["product-offers", product_id],
+    queryFn: async () => {
+      const res = await axiosClient.get(`/products/${product_id}/offers`);
+      return res.data;
+    },
+    enabled: !!product_id,
+  });
+}
+
 export function useGetShopProducts(
   shop_id: number,
   filters?: Record<string, any>,
@@ -1150,5 +1161,40 @@ export function useGetOfferHistory(productId?: number, page = 1, limit = 10) {
     },
 
     enabled: !!productId,
+  });
+}
+
+export function useGetPurchaseDetail(id: number) {
+  return useQuery({
+    queryKey: ["purchase-detail", id],
+    queryFn: async () => {
+      const { data } = await axiosClient.get(`/users/me/purchases/${id}`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useGetUserPurchases(search?: string) {
+  return useInfiniteQuery({
+    queryKey: ["purchases", search],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params: Record<string, any> = {
+        page: pageParam,
+        limit: 20,
+      };
+      if (search && search.trim()) {
+        params.search = search.trim();
+      }
+      const { data } = await axiosClient.get("/users/me/purchases", {
+        params,
+      });
+      return data;
+    },
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 }
