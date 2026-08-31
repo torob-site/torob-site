@@ -39,7 +39,6 @@ import {
 import { Badge } from "./ui/badge";
 import { useSearchFilters } from "../hooks/use-search-filters";
 
-
 interface ApiFilterItem {
   id?: string | number;
   value?: string | number;
@@ -57,7 +56,6 @@ interface ApiFilter {
   items?: ApiFilterItem[];
 }
 
-
 function DropdownFilter({
   filter,
   selectedValue,
@@ -70,7 +68,7 @@ function DropdownFilter({
   const [open, setOpen] = useState(false);
 
   const selected = filter.items?.find(
-    (o) => String(o.value || o.slug) === selectedValue
+    (o) => String(o.value || o.slug) === selectedValue,
   );
 
   return (
@@ -96,10 +94,11 @@ function DropdownFilter({
                   onChange(filter.slug, selectedValue === value ? null : value);
                   setOpen(false);
                 }}
-                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${selectedValue === value
-                  ? "text-blue-500 dark:text-blue-400"
-                  : "text-gray-700 dark:text-gray-300"
-                  }`}
+                className={`w-full text-right px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition first:rounded-t-xl last:rounded-b-xl ${
+                  selectedValue === value
+                    ? "text-blue-500 dark:text-blue-400"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
               >
                 {item.name || value}
               </button>
@@ -110,7 +109,6 @@ function DropdownFilter({
     </div>
   );
 }
-
 
 function ToggleFilter({
   filter,
@@ -135,7 +133,6 @@ function ToggleFilter({
     </label>
   );
 }
-
 
 function ToggleGroupFilter({
   filter,
@@ -176,7 +173,6 @@ function ToggleGroupFilter({
   );
 }
 
-
 function ToggleIconFilter({
   filter,
   checked,
@@ -203,8 +199,6 @@ function ToggleIconFilter({
   );
 }
 
-
-
 function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
   const { topFilters, setTopFilter } = useSearchFilters();
   if (!filters?.length) return null;
@@ -212,7 +206,10 @@ function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
   return (
     <div className="flex items-center gap-4 flex-wrap bg-[#ffffff] dark:bg-[#1e293b] rounded-xl px-4 py-3">
       {filters.map((filter, index) => {
-        const separator = index > 0 ? <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" /> : null;
+        const separator =
+          index > 0 ? (
+            <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
+          ) : null;
         let content: React.ReactNode = null;
 
         switch (filter.type) {
@@ -265,7 +262,6 @@ function TopFilterBar({ filters }: { filters: ApiFilter[] }) {
   );
 }
 
-
 function PriceFilter({
   minPrice,
   maxPrice,
@@ -300,7 +296,9 @@ function PriceFilter({
       {expanded && (
         <div className="pb-4 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">از</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
+              از
+            </span>
             <div className="relative flex-1">
               <Input
                 type="text"
@@ -317,7 +315,9 @@ function PriceFilter({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">تا</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 shrink-0 w-8">
+              تا
+            </span>
             <div className="relative flex-1">
               <Input
                 type="text"
@@ -353,7 +353,6 @@ function PriceFilter({
   );
 }
 
-
 function SidebarFilters({
   apiFilters,
   minPrice,
@@ -388,14 +387,12 @@ function SidebarFilters({
           <DynamicFilterGroup
             key={filter.slug}
             filter={filter}
-
             selected={
               activeFilters[
-              filter.slug === "brand"
-                ? "brand_id"
-                : filter.slug
+                filter.slug === "brand" ? "brand_id" : filter.slug
               ] || []
-            } onChange={handleFilterChange}
+            }
+            onChange={handleFilterChange}
           />
         ))}
 
@@ -405,7 +402,7 @@ function SidebarFilters({
         {isBrowsePage && (
           <>
             <SearchInResults />
-            <PriceListLink title={title} href="" />
+            <PriceListLink title={title} />
             <PopularCategories categories={popularCategories || []} />
           </>
         )}
@@ -414,11 +411,7 @@ function SidebarFilters({
   );
 }
 
-function ActiveFilterBadges({
-  filters,
-}: {
-  filters: ApiFilter[];
-}) {
+function ActiveFilterBadges({ filters }: { filters: ApiFilter[] }) {
   const {
     activeFilters,
     clearActiveFilterGroup,
@@ -449,52 +442,48 @@ function ActiveFilterBadges({
     }
   });
 
-  Object.entries(activeFilters).forEach(
-    ([slug, values]) => {
-      if (!values?.length) return;
+  Object.entries(activeFilters).forEach(([slug, values]) => {
+    if (!values?.length) return;
 
-      const filter = filters.find((f) => {
-        if (slug === "brand_id") {
-          return f.slug === "brand";
-        }
-        return f.slug === slug;
-      });
+    const filter = filters.find((f) => {
+      if (slug === "brand_id") {
+        return f.slug === "brand";
+      }
+      return f.slug === slug;
+    });
 
-      if (!filter) return;
+    if (!filter) return;
 
-      const names = values.map((v) => {
-        if (slug === "brand_id") {
-          const item = filter.items?.find(
-            (i) => String(i.id) === String(v),
-          );
-          return item?.name || v;
-        }
-
-        const item = filter.items?.find(
-          (i) => String(i.value ?? i.slug) === String(v),
-        );
+    const names = values.map((v) => {
+      if (slug === "brand_id") {
+        const item = filter.items?.find((i) => String(i.id) === String(v));
         return item?.name || v;
-      });
+      }
 
-      badges.push({
-        label: `${filter.title}: ${names.join(" و ")}`,
-        onClear: () => {
-          console.log('clearing slug:', slug);
-          if (slug === "brand_id") {
-            clearActiveFilterGroup("brand");
-          } else {
-            clearActiveFilterGroup(slug);
-          }
+      const item = filter.items?.find(
+        (i) => String(i.value ?? i.slug) === String(v),
+      );
+      return item?.name || v;
+    });
+
+    badges.push({
+      label: `${filter.title}: ${names.join(" و ")}`,
+      onClear: () => {
+        console.log("clearing slug:", slug);
+        if (slug === "brand_id") {
+          clearActiveFilterGroup("brand");
+        } else {
+          clearActiveFilterGroup(slug);
         }
-      });
-    },
-  );
+      },
+    });
+  });
 
   if (priceGt != null || priceLt != null) {
     badges.push({
-      label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"
-        } تا ${priceLt?.toLocaleString("fa-IR") || "∞"
-        }`,
+      label: `قیمت: ${priceGt?.toLocaleString("fa-IR") || "۰"} تا ${
+        priceLt?.toLocaleString("fa-IR") || "∞"
+      }`,
       onClear: clearPrice,
     });
   }
@@ -524,7 +513,6 @@ function ActiveFilterBadges({
     </div>
   );
 }
-
 
 function DynamicFilterGroup({
   filter,
@@ -573,7 +561,7 @@ function DynamicFilterGroup({
       {expanded && (
         <div className="pb-3 space-y-1">
           {displayItems.map((item, idx) => {
-            const value = String(item.id);
+            const value = String(item.value ?? item.id);
             const label = item.name || value;
             return (
               <label
@@ -582,16 +570,19 @@ function DynamicFilterGroup({
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex items-center justify-center transition ${isSingle
-                      ? `w-4 h-4 rounded-full border ${isSelected(value)
-                        ? "border-blue-500"
-                        : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
-                      }`
-                      : `w-4 h-4 rounded border ${isSelected(value)
-                        ? "bg-blue-500 border-blue-500"
-                        : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
-                      }`
-                      }`}
+                    className={`flex items-center justify-center transition ${
+                      isSingle
+                        ? `w-4 h-4 rounded-full border ${
+                            isSelected(value)
+                              ? "border-blue-500"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
+                          }`
+                        : `w-4 h-4 rounded border ${
+                            isSelected(value)
+                              ? "bg-blue-500 border-blue-500"
+                              : "border-gray-300 dark:border-gray-600 group-hover:border-gray-400"
+                          }`
+                    }`}
                   >
                     {isSelected(value) &&
                       (isSingle ? (
@@ -637,7 +628,6 @@ function DynamicFilterGroup({
   );
 }
 
-
 function SuggestedCategories({
   categories,
 }: {
@@ -676,11 +666,10 @@ function SuggestedCategories({
   );
 }
 
-
-
 function SearchInResults() {
   const [expanded, setExpanded] = useState(true);
-  const { searchInput, setSearchInput, applySearch, clearSearch } = useSearchFilters();
+  const { searchInput, setSearchInput, applySearch, clearSearch } =
+    useSearchFilters();
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800">
@@ -732,13 +721,19 @@ function SearchInResults() {
   );
 }
 
+function PriceListLink({ title }: { title?: string }) {
+  const pathname = usePathname();
 
-function PriceListLink({ title, href }: { title?: string; href?: string }) {
   if (!title) return null;
+
+  const [, , id, slug] = pathname.split("/");
+
+  if (!id || !slug) return null;
+
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 py-4">
       <Link
-        href={href || "#"}
+        href={`/price-list/${id}/${slug}`}
         className="block text-sm font-medium text-[#1e293b] dark:text-white hover:text-[#d73948]"
       >
         لیست قیمت {title}
@@ -746,7 +741,6 @@ function PriceListLink({ title, href }: { title?: string; href?: string }) {
     </div>
   );
 }
-
 
 function PopularCategories({
   categories,
@@ -774,9 +768,13 @@ function PopularCategories({
   );
 }
 
-
-
-function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }) {
+function ProductResults({
+  data,
+  isLoading,
+}: {
+  data: any[];
+  isLoading: boolean;
+}) {
   const { data: user } = useGetUser();
   const { data: favoriteIds = [] } = useGetUserFavorites(true, {
     enabled: !!user?.phone,
@@ -821,7 +819,6 @@ function ProductResults({ data, isLoading }: { data: any[]; isLoading: boolean }
   );
 }
 
-
 function ShopHeader({ shop }: { shop: any }) {
   const [query, setQuery] = useState("");
   if (!shop) return null;
@@ -858,7 +855,6 @@ function ShopHeader({ shop }: { shop: any }) {
   );
 }
 
-
 function CategoryBreadcrumb({
   categories,
 }: {
@@ -866,7 +862,10 @@ function CategoryBreadcrumb({
 }) {
   if (!categories?.length) return null;
   return (
-    <Breadcrumb dir="rtl" className="border-b border-gray-200 dark:border-gray-800 py-2">
+    <Breadcrumb
+      dir="rtl"
+      className="border-b border-gray-200 dark:border-gray-800 py-2"
+    >
       <BreadcrumbList>
         {categories.map((category, index) => {
           const isLast = index === categories.length - 1;
@@ -876,7 +875,9 @@ function CategoryBreadcrumb({
                 {isLast ? (
                   <BreadcrumbPage>{category.title}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={`/browse/${category.id}/${category.url}`}>
+                  <BreadcrumbLink
+                    href={`/browse/${category.id}/${category.url}`}
+                  >
                     {category.title}
                   </BreadcrumbLink>
                 )}
@@ -890,15 +891,16 @@ function CategoryBreadcrumb({
   );
 }
 
-
-
-
 function CategoryNotFound() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
       <Search className="w-16 h-16 mb-4 opacity-30" />
-      <p className="text-lg font-bold text-red-500">دسته‌بندی مورد نظر یافت نشد</p>
-      <p className="text-sm mt-2">دسته‌بندی که به دنبال آن هستید وجود ندارد یا حذف شده است</p>
+      <p className="text-lg font-bold text-red-500">
+        دسته‌بندی مورد نظر یافت نشد
+      </p>
+      <p className="text-sm mt-2">
+        دسته‌بندی که به دنبال آن هستید وجود ندارد یا حذف شده است
+      </p>
       <Link
         href="/"
         className="mt-6 px-6 py-2 rounded-xl bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 text-sm font-medium"
@@ -909,18 +911,20 @@ function CategoryNotFound() {
   );
 }
 
-
 function SearchContent() {
   const pathname = usePathname();
   const isBrowsePage = pathname.startsWith("/browse");
   const isSearchPage = pathname.startsWith("/search");
+  const [, categoryId, categorySlug] = pathname.split("/");
   const { apiParams, query } = useSearchFilters();
 
   const getCategoryIdFromPath = useCallback((currentPathname: string) => {
     const parts = currentPathname.split("/").filter(Boolean);
     const browseIndex = parts.indexOf("browse");
     if (browseIndex === -1) return null;
-    const ids = parts.slice(browseIndex + 1).filter((part) => /^\d+$/.test(part));
+    const ids = parts
+      .slice(browseIndex + 1)
+      .filter((part) => /^\d+$/.test(part));
     return ids.length ? Number(ids[ids.length - 1]) : null;
   }, []);
 
@@ -932,7 +936,14 @@ function SearchContent() {
       if (categoryId) params.category_id = categoryId;
     }
     return params;
-  }, [apiParams, isSearchPage, isBrowsePage, query, pathname, getCategoryIdFromPath]);
+  }, [
+    apiParams,
+    isSearchPage,
+    isBrowsePage,
+    query,
+    pathname,
+    getCategoryIdFromPath,
+  ]);
 
   const {
     data: searchResults,
@@ -968,7 +979,7 @@ function SearchContent() {
           fetchNextPageRef.current?.();
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: "300px" },
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
@@ -989,6 +1000,8 @@ function SearchContent() {
               isBrowsePage={isBrowsePage}
               title={title}
               popularCategories={popularCategories}
+              categoryId={categoryId}
+              categorySlug={categorySlug}
             />
           </div>
 
@@ -1025,7 +1038,6 @@ function SearchContent() {
     </div>
   );
 }
-
 
 export default function SearchFilters() {
   return (
