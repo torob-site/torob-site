@@ -364,11 +364,13 @@ export function useGetProductMapOffers(product_id: number) {
   });
 }
 
-export function useGetProductOffers(product_id: number) {
+export function useGetProductOffers(product_id: number, filter?: string) {
   return useQuery<any>({
-    queryKey: ["product-offers", product_id],
+    queryKey: ["product-offers", product_id, filter ?? "all"],
     queryFn: async () => {
-      const res = await axiosClient.get(`/products/${product_id}/offers`);
+      const params: Record<string, string> = {};
+      if (filter && filter !== "all") params.filter = filter;
+      const res = await axiosClient.get(`/products/${product_id}/offers`, { params });
       return res.data;
     },
     enabled: !!product_id,
@@ -1196,5 +1198,64 @@ export function useGetUserPurchases(search?: string) {
       return page < totalPages ? page + 1 : undefined;
     },
     initialPageParam: 1,
+  });
+}
+
+export function useGetPriceList(categoryId: number, page = 1, limit = 10) {
+  return useQuery({
+    queryKey: ["price-list", categoryId, page, limit],
+
+    queryFn: async () => {
+      const { data } = await axiosClient.get(
+        `/products/price-list/${categoryId}`,
+        {
+          params: {
+            page,
+            limit,
+          },
+        },
+      );
+
+      return data;
+    },
+
+    enabled: Number.isFinite(categoryId),
+  });
+}
+
+export function useGetReportOptions(
+  shop_type?: "ONLINE_SHOP" | "OFFLINE_SHOP",
+) {
+  return useQuery({
+    queryKey: ["report-options", shop_type],
+    queryFn: async () => {
+      const { data } = await axiosClient.get("/reports/options", {
+        params: {
+          shop_type,
+        },
+      });
+
+      return data;
+    },
+    enabled: !!shop_type,
+  });
+}
+
+interface CreateReportPayload {
+  shop_id: number;
+  product_id: number;
+  report_reason_id: number;
+  description?: string | null;
+}
+
+export function usePostUserReport() {
+  return useMutation({
+    mutationFn: async (data: CreateReportPayload) => {
+      const response = await axiosClient.post("/users/me/reports", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('گزارش ثبت شد')
+    }
   });
 }
