@@ -1,7 +1,8 @@
 "use client";
 
-import { useGetPurchaseDetail } from "@/lib/apis";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { axiosClient } from "@/lib/axios";
 import {
   ArrowRight,
   Globe,
@@ -13,7 +14,6 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -21,15 +21,6 @@ function formatPrice(price: number | null | undefined): string {
   if (price == null) return "";
 
   return `${price.toLocaleString("fa-IR")} تومان`;
-}
-
-function extractTimePart(created_at: string): string {
-  const parts = created_at.split(" - ");
-  const dateAndTime = parts[1] ?? "";
-
-  const timeParts = dateAndTime.split(" ");
-
-  return timeParts[timeParts.length - 1] ?? "";
 }
 
 function getContactIcon(platform: string) {
@@ -127,10 +118,20 @@ function formatPhone(phone: string | null | undefined): string {
 }
 
 export default function PurchaseDetail() {
-  const params = useParams();
-  const id = Number(params.id);
+  const searchParams = useSearchParams();
+  const productId = Number(searchParams.get("product_id"));
+  const shopId = Number(searchParams.get("shop_id"));
 
-  const { data, isLoading } = useGetPurchaseDetail(id);
+  const { data, isLoading } = useQuery({
+    queryKey: ["purchase-detail", productId, shopId],
+    queryFn: async () => {
+      const res = await axiosClient.get(
+        `/users/me/purchases/detail?product_id=${productId}&shop_id=${shopId}`,
+      );
+      return res.data;
+    },
+    enabled: !!productId && !!shopId,
+  });
 
   const [selectedImage, setSelectedImage] = useState(0);
 

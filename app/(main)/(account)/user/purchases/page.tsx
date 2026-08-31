@@ -8,6 +8,8 @@ import { useEffect, useRef, useMemo, useState } from "react";
 
 type PurchaseItem = {
   id: number;
+  product_id: number;
+  shop_id: number;
   product_name: string;
   product_slug: string;
   product_image: string;
@@ -42,7 +44,7 @@ function extractTimePart(created_at: string): string {
 function PurchaseItemCard({ item }: { item: PurchaseItem }) {
   return (
     <Link
-      href={`/user/purchases/${item.id}`}
+      href={`/user/purchases/detail?product_id=${item.product_id}&shop_id=${item.shop_id}`}
       className="flex gap-4 border-b border-slate-100 py-6 last:border-b-0"
     >
       {/* Product image */}
@@ -83,8 +85,9 @@ function PurchaseItemCard({ item }: { item: PurchaseItem }) {
           قیمت در زمان بازدید:{" "}
           <span className="text-slate-700">{formatPrice(item.price)}</span>
         </div>
-      </div>      </Link>
-    );
+      </div>
+    </Link>
+  );
 }
 
 export default function Purchases() {
