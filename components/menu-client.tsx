@@ -23,7 +23,7 @@ export default function MenuClient({ menus }: MenuClientProps) {
   };
 
   return (
-    <div className="flex items-center gap-10 bg-white px-10">
+    <div className="flex items-center gap-10 bg-[#ffffff] dark:bg-[#212b36] px-10">
       <nav className="hidden items-center gap-2 xl:flex">
         {menus.map((menu) => {
           const hasChildren = !!menu.children?.length;
