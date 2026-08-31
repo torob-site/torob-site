@@ -20,6 +20,7 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useGetProductMapOffers } from "@/lib/apis";
+import ReportModal from "@/components/report-modal";
 
 /* ==================== Helpers ==================== */
 
@@ -188,6 +189,8 @@ export default function ProductMap(props: any) {
   const [contactOpen, setContactOpen] = useState(false);
   const [contactSeller, setContactSeller] = useState<any>(null);
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportSeller, setReportSeller] = useState<any>(null);
 
   const cardRefs = useRef<any>({});
 
@@ -228,6 +231,12 @@ export default function ProductMap(props: any) {
   const openContact = (seller: any) => {
     setContactSeller(seller);
     setContactOpen(true);
+  };
+
+  const openReport = (seller: any, e: any) => {
+    e.stopPropagation();
+    setReportSeller(seller);
+    setReportModalOpen(true);
   };
 
   /* ---------- Derived ---------- */
@@ -440,7 +449,7 @@ export default function ProductMap(props: any) {
                         </span>
                       </div>
                       <button
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => openReport(seller, e)}
                         className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/30"
                       >
                         <Flag className="h-3.5 w-3.5" />
@@ -543,6 +552,37 @@ export default function ProductMap(props: any) {
             <ChevronLeft className="h-6 w-6" />
           </button>
         </div>
+      )}
+
+      {/* ===== Report Modal ===== */}
+      {reportModalOpen && (
+        <ReportModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          productName={productName || data?.product_name || "محصول"}
+          productImage={reportSeller?.shop?.shopImages?.[0]?.url ?? null}
+          offer={
+            reportSeller
+              ? {
+                  id: reportSeller.id,
+                  product_id,
+                  price: Number(reportSeller.price) || 0,
+                  shop: {
+                    id: reportSeller.shop.id,
+                    shop_name: reportSeller.shop.shop_name ?? "فروشگاه",
+                    shop_logo: reportSeller.shop.shop_logo ?? null,
+                    type: reportSeller.shop.type,
+                    city: reportSeller.shop.city ?? null,
+                  },
+                  warranty: reportSeller.warranty
+                    ? { title: reportSeller.warranty.title }
+                    : null,
+                  warranty_duration: reportSeller.warranty_duration ?? null,
+                  is_available: true,
+                }
+              : null
+          }
+        />
       )}
 
       {/* ===== Contact Modal ===== */}
