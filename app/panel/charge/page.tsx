@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Check, ChevronRight, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatPriceNumber as formatPrice } from "@/lib/format";
 
 const amounts = [
     50_000,
@@ -21,9 +22,7 @@ const amounts = [
     50_000_000,
 ];
 
-function formatPrice(value: number) {
-    return new Intl.NumberFormat("fa-IR").format(value);
-}
+
 
 export default function IncreaseBalancePage() {
     const router = useRouter();

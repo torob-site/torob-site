@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Maximize2, X } from "lucide-react";
+import { formatPriceNumber as formatPrice } from "@/lib/format";
 
 
 function useIsDark() {
@@ -48,9 +49,7 @@ interface PriceData {
   dataSets: DataSet[];
 }
 
-function formatPrice(price: number): string {
-  return price.toLocaleString("fa-IR");
-}
+
 
 function formatYAxis(value: number): string {
   if (value >= 1000000) return (value / 1000000).toFixed(0) + "M";

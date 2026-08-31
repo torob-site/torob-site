@@ -2,6 +2,7 @@
 
 import { StatisticsRange, useGetShopStatistics } from "@/lib/apis";
 import { useState } from "react";
+import { formatPriceNumber as toPersianNumber } from "@/lib/format";
 
 import {
     BarChart,
@@ -33,9 +34,7 @@ const tabs: {
 ];
 
 
-function toPersianNumber(value: number) {
-    return new Intl.NumberFormat("fa-IR").format(value);
-}
+
 
 
 function formatDate(

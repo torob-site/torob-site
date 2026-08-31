@@ -15,6 +15,7 @@ import {
 import { useCurrentShop } from "@/hooks/useCurrentShop";
 import { axiosClient } from "@/lib/axios";
 import { Switch } from "@/components/ui/switch";
+import { formatPriceNumber as formatPrice } from "@/lib/format";
 
 interface ReportReason {
     id: number;
@@ -44,9 +45,7 @@ interface ReportsResponse {
     reports: Report[];
 }
 
-function formatPrice(value: number) {
-    return new Intl.NumberFormat("fa-IR").format(value);
-}
+
 
 async function getReports(shopId: number) {
     const { data } = await axiosClient.get<ReportsResponse>(

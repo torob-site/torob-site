@@ -37,6 +37,7 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { formatPriceNumber as toPersianNumber } from "@/lib/format";
 
 import {
   Bar,
@@ -70,9 +71,7 @@ const tabs: {
 
 const WARRANTY_DURATIONS = [6, 12, 18, 24, 36, 48, 60, 120];
 
-function toPersianNumber(value: number) {
-  return new Intl.NumberFormat("fa-IR").format(value);
-}
+
 
 function formatDate(date: { year: number; month: number; day: number }) {
   return `${toPersianNumber(date.year)}/${toPersianNumber(

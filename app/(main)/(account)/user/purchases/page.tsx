@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Store, ShoppingCart, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useMemo, useState } from "react";
+import { formatPrice } from "@/lib/format";
 
 type PurchaseItem = {
   id: number;
@@ -20,10 +21,7 @@ type PurchaseItem = {
   created_at: string;
 };
 
-function formatPrice(price: number | null | undefined): string {
-  if (price == null) return "";
-  return price.toLocaleString("fa-IR") + " تومان";
-}
+
 
 function extractDatePart(created_at: string): string {
   const parts = created_at.split(" - ");

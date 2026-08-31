@@ -21,11 +21,12 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useGetProductMapOffers } from "@/lib/apis";
 import ReportModal from "@/components/report-modal";
+import { formatPriceNumber as formatPrice } from "@/lib/format";
 
 /* ==================== Helpers ==================== */
 
 const createPriceMarker = (price: number, isActive: boolean) => {
-  const formattedPrice = new Intl.NumberFormat("fa-IR").format(price);
+  const formattedPrice = formatPrice(price);
 
   return L.divIcon({
     className: "price-marker",
@@ -133,9 +134,7 @@ const getContactConfig = (platform: string) => {
   );
 };
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("fa-IR").format(price);
-};
+
 
 /* ==================== Skeleton ==================== */
 

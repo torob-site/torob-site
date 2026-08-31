@@ -8,6 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { formatPriceNumber as formatAmount } from "@/lib/format";
 
 
 interface Transaction {
@@ -38,9 +39,7 @@ interface TransactionsResponse {
   transactions: TransactionGroup[];
 }
 
-function formatAmount(amount: number) {
-  return new Intl.NumberFormat("fa-IR").format(amount);
-}
+
 
 function formatDate(transaction: Transaction) {
   return `${transaction.date.year}/${String(

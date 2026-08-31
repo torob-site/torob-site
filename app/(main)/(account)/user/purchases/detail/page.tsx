@@ -16,12 +16,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { formatPrice } from "@/lib/format";
 
-function formatPrice(price: number | null | undefined): string {
-  if (price == null) return "";
 
-  return `${price.toLocaleString("fa-IR")} تومان`;
-}
 
 function getContactIcon(platform: string) {
   switch (platform) {

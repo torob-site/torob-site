@@ -7,6 +7,7 @@ import { ChevronLeft, Store, ChevronRight } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
 import { useGetPriceList } from "@/lib/apis";
+import { formatPrice as formatPriceBase } from "@/lib/format";
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
@@ -88,11 +89,8 @@ type PriceListResponse =
 /* -------------------------------------------------------------------------- */
 
 function formatPrice(price: number | null) {
-  if (price === null) {
-    return "قیمت موجود نیست";
-  }
-
-  return `${price.toLocaleString("fa-IR")} تومان`;
+  if (price === null) return "قیمت موجود نیست";
+  return formatPriceBase(price);
 }
 
 /* -------------------------------------------------------------------------- */
