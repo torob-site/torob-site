@@ -12,32 +12,32 @@ import {
 } from "lucide-react";
 
 const items = [
-    {
-        title: "خانه",
-        href: "/panel",
-        icon: Home,
-    },
-    {
-        title: "گزارش",
-        href: "/panel/reports",
-        icon: Flag,
-    },
-    {
-        title: "افزودن محصول",
-        href: "/panel/products/create",
-        icon: Plus,
-        main: true,
-    },
-    {
-        title: "آمار",
-        href: "/panel/statistics",
-        icon: BarChart3,
-    },
-    {
-        title: "بیشتر",
-        href: "/panel/more",
-        icon: MoreHorizontal,
-    },
+  {
+    title: "خانه",
+    href: "/panel",
+    icon: Home,
+  },
+  {
+    title: "گزارش",
+    href: "/panel/reports",
+    icon: Flag,
+  },
+  {
+    title: "افزودن محصول",
+    href: "/panel/add-product",
+    icon: Plus,
+    main: true,
+  },
+  {
+    title: "آمار",
+    href: "/panel/statistics",
+    icon: BarChart3,
+  },
+  {
+    title: "بیشتر",
+    href: "/panel/more",
+    icon: MoreHorizontal,
+  },
 ];
 
 export default function PanelFooter() {

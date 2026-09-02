@@ -24,6 +24,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { axiosClient } from "@/lib/axios";
 import { useCurrentShop } from "@/hooks/useCurrentShop";
+import { ScreenSpinner } from "@/components/ui/page-spinner";
 import { Switch } from "@/components/ui/switch";
 
 // ============================================
@@ -150,7 +151,7 @@ const footerItems = [
   { title: "گزارش", href: "/panel/reports", icon: Flag },
   {
     title: "افزودن محصول",
-    href: "/panel/products/create",
+    href: "/panel/add-product",
     icon: Plus,
     main: true,
   },
@@ -386,12 +387,7 @@ export default function ProductsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-        <span className="mr-3 text-gray-500 dark:text-gray-400">
-          در حال بارگذاری...
-        </span>
-      </div>
+      <ScreenSpinner className="min-h-screen bg-gray-50 dark:bg-[#0f172a]" />
     );
   }
 
@@ -436,7 +432,7 @@ export default function ProductsPage() {
               </div>
             </div>
             <Link
-              href="/panel/products/create"
+              href="/panel/add-product"
               className="absolute left-[42px] top-1/2 z-10 -translate-y-1/2 text-sm font-bold text-blue-600"
             >
               افزودن محصول
