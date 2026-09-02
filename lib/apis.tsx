@@ -370,7 +370,9 @@ export function useGetProductOffers(product_id: number, filter?: string) {
     queryFn: async () => {
       const params: Record<string, string> = {};
       if (filter && filter !== "all") params.filter = filter;
-      const res = await axiosClient.get(`/products/${product_id}/offers`, { params });
+      const res = await axiosClient.get(`/products/${product_id}/offers`, {
+        params,
+      });
       return res.data;
     },
     enabled: !!product_id,
@@ -1255,7 +1257,64 @@ export function usePostUserReport() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('گزارش ثبت شد')
-    }
+      toast.success("گزارش ثبت شد");
+    },
+  });
+}
+
+export function useGetRecentOfferClicks() {
+  return useQuery<any>({
+    queryKey: ["recent-offer-clicks"],
+    queryFn: async () => {
+      const res = await axiosClient.get("/users/me/recent-offer-clicks");
+      return res.data;
+    },
+  });
+}
+
+export function usePostfindMergeCandidates() {
+  const { currentShop } = useCurrentShop();
+  return useMutation({
+    mutationFn: async (data: { title: string; max_candidates?: number }) => {
+      const response = await axiosClient.post(
+        `/panel/shops/${currentShop?.id}/find-merge-candidates`,
+        data,
+      );
+      return response.data;
+    },
+  });
+}
+
+export function usePostCreateOffer() {
+  const { currentShop } = useCurrentShop();
+
+  return useMutation({
+    mutationFn: async (data: {
+      title?: string;
+      product_id?: number;
+      category_id?: number;
+      price: number;
+      description?: string;
+    }) => {
+      const response = await axiosClient.post(
+        `/panel/shops/${currentShop?.id}/create-offer`,
+        data,
+      );
+
+      return response.data;
+    },
+  });
+}
+
+export function useGetSuggestCategory() {
+  const { currentShop } = useCurrentShop();
+  return useMutation({
+    mutationFn: async (data: { title: string }) => {
+      const response = await axiosClient.post(
+        `/panel/shops/${currentShop?.id}/suggest-category`,
+        data,
+      );
+      return response.data;
+    },
   });
 }
