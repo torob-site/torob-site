@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { PageSpinner, InlineSpinner } from "@/components/ui/page-spinner";
 import { useGetInfiniteShops } from "@/lib/apis";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -60,13 +60,7 @@ export default function Shops() {
     setSearch(query.trim());
   }
 
-  if (isPending) {
-    return (
-      <div className="flex w-full justify-center mt-12">
-        <Spinner className="size-8 text-[#d73948]" />
-      </div>
-    );
-  }
+  if (isPending) return <PageSpinner className="mt-12" />;
 
   return (
     <div className="flex w-full justify-center mt-12">
@@ -128,11 +122,7 @@ export default function Shops() {
           className="h-10 w-full"
         />
 
-        {isFetchingNextPage && (
-          <div className="py-6">
-            <Spinner className="size-8 text-[#d73948]" />
-          </div>
-        )}
+        {isFetchingNextPage && <InlineSpinner />}
 
       </div>
     </div>

@@ -6,7 +6,6 @@ import { axiosClient } from "@/lib/axios";
 import {
   ArrowRight,
   Globe,
-  Loader2,
   MapPin,
   Phone,
   ShoppingCart,
@@ -14,6 +13,7 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
+import { ScreenSpinner } from "@/components/ui/page-spinner";
 import Link from "next/link";
 import { useState } from "react";
 import { formatPrice } from "@/lib/format";
@@ -132,13 +132,7 @@ export default function PurchaseDetail() {
 
   const [selectedImage, setSelectedImage] = useState(0);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 size={25} className="animate-spin text-slate-400" />
-      </div>
-    );
-  }
+  if (isLoading) return <ScreenSpinner className="bg-slate-50" />;
 
   if (!data) {
     return null;

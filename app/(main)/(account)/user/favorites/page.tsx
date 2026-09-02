@@ -1,6 +1,6 @@
 "use client";
 import ProductCard from "@/components/product-card";
-import { Spinner } from "@/components/ui/spinner";
+import { PageSpinner } from "@/components/ui/page-spinner";
 import { useGetUser, useGetUserAlerts, useGetUserFavorites } from "@/lib/apis";
 
 export default function Favorites() {
@@ -10,13 +10,7 @@ export default function Favorites() {
     enabled: !!user?.phone && favorites.length > 0,
   });
   const alertSet = new Set(alertIds);
-  if (isPending) {
-    return (
-      <div className="flex items-center w-full justify-center py-20">
-        <Spinner className="size-8 text-blue-500" />
-      </div>
-    );
-  }
+  if (isPending) return <PageSpinner />;
 
   if (!favorites || favorites.length === 0) {
     return (

@@ -1,5 +1,5 @@
 "use client";
-import { Spinner } from "@/components/ui/spinner";
+import { PageSpinner } from "@/components/ui/page-spinner";
 import { useGetIdentityVideo } from "@/lib/apis";
 import { Upload } from "lucide-react";
 
@@ -7,11 +7,7 @@ export default function IdentityVideo() {
   const { data, isPending, error } = useGetIdentityVideo();
 
   if (isPending) {
-    return (
-      <div className="flex mt-10 justify-center">
-        <Spinner />
-      </div>
-    );
+    return <PageSpinner className="mt-10" />;
   }
 
   if (error || !data) {

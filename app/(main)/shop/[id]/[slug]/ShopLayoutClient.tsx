@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronDown, ChevronUp, Home, MapPin, Search } from "lucide-react"
-import { Spinner } from "@/components/ui/spinner"
+import { ScreenSpinner } from "@/components/ui/page-spinner"
 import { Input } from "@/components/ui/input"
 import {
   Breadcrumb,
@@ -183,11 +183,7 @@ export default function ShopLayoutClient({
   const productPath = `/shop/${shopId}/${slug}/product`
 
   if (isPending) {
-    return (
-      <div className="min-h-screen flex items-center justify-center dark:bg-[#15202b] bg-[#f1f5f9]">
-        <Spinner className="size-10 text-[#d73948]" />
-      </div>
-    )
+    return <ScreenSpinner className="dark:bg-[#15202b] bg-[#f1f5f9]" />
   }
 
   if (error || !shop) {

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
+import { PageSpinner } from "@/components/ui/page-spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -153,9 +153,7 @@ export default function ProductsDetails() {
      LOADING
   ========================================================= */
 
-  if (isPending) {
-    return <Spinner />;
-  }
+  if (isPending) return <PageSpinner />;
 
   if (error || !data) {
     return (

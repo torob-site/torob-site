@@ -1,7 +1,7 @@
 'use client'
 import ProductCard from "@/components/product-card";
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
+import { InlineSpinner } from "@/components/ui/page-spinner";
 import { Switch } from "@/components/ui/switch";
 import { useSearchFilters } from "@/hooks/use-search-filters";
 import { useGetShopProducts, useGetUser, useGetUserAlerts, useGetUserFavorites } from "@/lib/apis";
@@ -359,11 +359,7 @@ export default function ShopProductsPage() {
 
           <div ref={sentinelRef} className="h-10 w-full" />
 
-          {isFetchingNextPage && (
-            <div className="flex items-center justify-center py-6">
-              <Spinner className="size-6 text-blue-500" />
-            </div>
-          )}
+          {isFetchingNextPage && <InlineSpinner size="size-6" />}
         </>
       )}
     </>

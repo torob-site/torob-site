@@ -2,7 +2,7 @@
 
 import PriceChart from "@/app/(main)/p/PriceChart";
 import ProductCard from "@/components/product-card";
-import { Spinner } from "@/components/ui/spinner";
+import { PageSpinner, InlineSpinner } from "@/components/ui/page-spinner";
 
 import {
   useGetProductPriceHistory,
@@ -233,16 +233,7 @@ function AlertAnalytics({
           {/* History */}
 
           {historyLoading ? (
-            <div
-              className="
-                flex
-                h-[300px]
-                items-center
-                justify-center
-              "
-            >
-              <Spinner className="size-7 text-blue-500" />
-            </div>
+            <InlineSpinner className="h-[300px]" />
           ) : historyItems.length > 0 ? (
             <div
               className="
@@ -288,16 +279,7 @@ function AlertAnalytics({
           "
         >
           {priceHistoryLoading ? (
-            <div
-              className="
-                flex
-                h-[300px]
-                items-center
-                justify-center
-              "
-            >
-              <Spinner className="size-7 text-blue-500" />
-            </div>
+            <InlineSpinner className="h-[300px]" />
           ) : (
             <div
               className="
@@ -350,17 +332,7 @@ export default function Analytics() {
 
   if (isPending) {
     return (
-      <div
-        className="
-          flex
-          w-full
-          items-center
-          justify-center
-          py-20
-        "
-      >
-        <Spinner className="size-8 text-blue-500" />
-      </div>
+      <PageSpinner />
     );
   }
 

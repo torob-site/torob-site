@@ -430,7 +430,7 @@ export default function ProductCard({
           {/* ========================= */}
 
           {badges.length > 0 && (
-            <div className="mt-4 flex items-center">
+            <div className="mt-4 flex flex-wrap space-y-1 gap-1 items-center">
               {badges.map((badge: any, index: number) => (
                 <Badge
                   key={index}

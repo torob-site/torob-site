@@ -2,7 +2,8 @@
 
 import { useGetUserPurchases } from "@/lib/apis";
 import { Input } from "@/components/ui/input";
-import { Search, Store, ShoppingCart, Loader2 } from "lucide-react";
+import { Search, Store, ShoppingCart } from "lucide-react";
+import { InlineSpinner } from "@/components/ui/page-spinner";
 import Link from "next/link";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { formatPrice } from "@/lib/format";
@@ -187,11 +188,7 @@ export default function Purchases() {
           </div>
 
           {/* Loading state */}
-          {isLoading && (
-            <div className="flex justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-slate-400" />
-            </div>
-          )}
+          {isLoading && <InlineSpinner />}
 
           {/* Empty state */}
           {!isLoading && allItems.length === 0 && (
@@ -221,13 +218,8 @@ export default function Purchases() {
               ))}
 
               {/* Infinite scroll trigger */}
-              <div ref={observerRef} className="flex justify-center py-6">
-                {isFetchingNextPage && (
-                  <Loader2
-                    size={24}
-                    className="animate-spin text-slate-400"
-                  />
-                )}
+              <div ref={observerRef}>
+                {isFetchingNextPage && <InlineSpinner size="size-6" />}
               </div>
             </div>
           )}
