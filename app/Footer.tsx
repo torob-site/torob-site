@@ -37,7 +37,7 @@ const links = [
   },
   {
     name: "ثبت نام فروشگاه",
-    link: "/sell",
+    link: "/sell/register",
   },
   {
     name: "پنل فروشگاه‌ها",
