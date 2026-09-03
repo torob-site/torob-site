@@ -295,7 +295,7 @@ export function useGetProvinces() {
   });
 }
 
-export function useGetCities(province_id?: number) {
+export function getProvinceCities(province_id?: number) {
   return useQuery({
     queryKey: ["cities", province_id],
     queryFn: async () => {
@@ -1315,6 +1315,65 @@ export function useGetSuggestCategory() {
         data,
       );
       return response.data;
+    },
+  });
+}
+
+export function useGetAllBusinessTypes() {
+  return useQuery({
+    queryKey: ["all-business-types"],
+    queryFn: async () => {
+      const { data } = await axiosClient.get("/shops/business-types");
+      return data;
+    },
+  });
+}
+
+export function useCreateShop() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async (data: {
+      type: "ONLINE_SHOP" | "OFFLINE_SHOP";
+      shop_name: string;
+
+      // فقط برای فروشگاه حضوری
+      city_id?: number;
+      business_type?: string;
+      has_license?: boolean;
+
+      // فقط برای فروشگاه آنلاین
+      domain?: string;
+    }) => {
+      const { data: result } = await axiosClient.post(
+        "/shops",
+        data,
+      );
+
+      return result;
+    },
+
+    onSuccess: () => {
+      toast.success("فروشگاه با موفقیت ساخته شد");
+      router.push("/panel");
+    },
+
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message ||
+        "خطا در ساخت فروشگاه";
+
+      toast.error(message);
+    },
+  });
+}
+
+export function useGetCities() {
+  return useQuery({
+    queryKey: ["cities"],
+    queryFn: async () => {
+      const res = await axiosClient.get(`/locations/cities`);
+      return res.data;
     },
   });
 }

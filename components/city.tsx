@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import {
-  useGetCities,
+  getProvinceCities,
   useGetPopularCities,
   useGetProvinces,
   useGetUser,
@@ -89,7 +89,7 @@ export default function CitySelector({
     data: cities = [],
     isLoading: citiesLoading,
     isError: citiesError,
-  } = useGetCities(expandedProvince ?? undefined) as {
+  } = getProvinceCities(expandedProvince ?? undefined) as {
     data: City[] | undefined;
     isLoading: boolean;
     isError: boolean;

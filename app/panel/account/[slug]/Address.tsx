@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import LocationMap from "@/components/location-map";
 import {
-  useGetCities,
+  getProvinceCities,
   useGetLocation,
   useGetProvinces,
   useUpdateLocation,
@@ -35,7 +35,7 @@ export default function LocationPage() {
     longitude: 51.0,
   });
 
-  const { data: cities = [] } = useGetCities(form.province_id);
+  const { data: cities = [] } = getProvinceCities(form.province_id);
 
   useEffect(() => {
     if (location) {
