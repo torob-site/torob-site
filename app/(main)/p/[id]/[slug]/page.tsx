@@ -1024,11 +1024,14 @@ export default function ProductPage() {
   }, [offersData]);
 
   const cheapestOffer = useMemo(() => {
-    if (offers.length === 0) {
+    const onlineOffers = offers.filter(
+      (o) => o.shop.type === "ONLINE_SHOP",
+    );
+    if (onlineOffers.length === 0) {
       return null;
     }
 
-    return [...offers].sort((a, b) => a.price - b.price)[0];
+    return [...onlineOffers].sort((a, b) => a.price - b.price)[0];
   }, [offers]);
 
   // گزارش کنار لایک باید مربوط به همان فروشنده‌ای باشد

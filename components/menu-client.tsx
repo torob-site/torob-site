@@ -17,7 +17,6 @@ type MenuClientProps = {
 
 export default function MenuClient({ menus }: MenuClientProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-
   const handleLinkClick = () => {
     setOpenMenu(null);
   };

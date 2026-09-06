@@ -532,6 +532,53 @@ export function useGetShopOwnerInfo() {
   });
 }
 
+export function useGetBusinessBackground() {
+  const { currentShop } = useCurrentShop();
+
+  return useQuery({
+    queryKey: ["business-background", currentShop?.id],
+    enabled: !!currentShop?.id,
+    meta: {
+      authModal: false,
+    },
+    queryFn: async () => {
+      const res = await axiosClient.get(
+        `/panel/shops/${currentShop.id}/business-background`,
+      );
+
+      return res.data as {
+        categories: { id: number; title: string; url: string }[];
+        selected_category_ids: number[];
+      };
+    },
+  });
+}
+
+export function useUpdateBusinessBackground() {
+  const queryClient = useQueryClient();
+  const { currentShop } = useCurrentShop();
+
+  return useMutation({
+    mutationFn: async (data: { category_ids: number[] }) => {
+      const res = await axiosClient.patch(
+        `/panel/shops/${currentShop.id}/business-background`,
+        data,
+      );
+
+      return res.data;
+    },
+    meta: {
+      authModal: false,
+    },
+    onSuccess: () => {
+      toast.success("زمینه‌ی کاری فروشگاه با موفقیت ثبت شد");
+      queryClient.invalidateQueries({
+        queryKey: ["business-background", currentShop.id],
+      });
+    },
+  });
+}
+
 export function useGetBusinessTypes() {
   const { currentShop } = useCurrentShop();
 
