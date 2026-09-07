@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import PhoneStep from "./phone-step";
 import OtpStep from "./otp-step";
+import { usePostAuthSendCode, usePostAuthVerifyCode } from "@/lib/apis";
 
 
 type Props = {
@@ -25,6 +27,43 @@ export default function AuthModal({
   const [phone, setPhone] = useState("");
   function cancelCity() {
     onOpenChange(false);
+  }
+
+  const sendCode = usePostAuthSendCode();
+  const verifyCode = usePostAuthVerifyCode();
+
+  async function handlePhoneNext(phone: string) {
+    try {
+      await sendCode.mutateAsync({ phone });
+      setPhone(phone);
+      setStep("otp");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ?? "خطا در ارسال کد تأیید",
+      );
+    }
+  }
+
+  async function handleVerify(code: string) {
+    try {
+      await verifyCode.mutateAsync({ phone, code });
+      toast.success("با موفقیت وارد شدید");
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ?? "کد تأیید نامعتبر است",
+      );
+    }
+  }
+
+  async function handleResend() {
+    try {
+      await sendCode.mutateAsync({ phone });
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ?? "خطا در ارسال مجدد کد",
+      );
+    }
   }
   return (
     <Dialog
@@ -70,15 +109,14 @@ export default function AuthModal({
 
         {step === "phone" ? (
           <PhoneStep
-            onNext={(phone) => {
-              setPhone(phone);
-              setStep("otp");
-            }}
+            onNext={handlePhoneNext}
           />
         ) : (
           <OtpStep
             phone={phone}
             onBack={() => setStep("phone")}
+            onVerify={handleVerify}
+            onResend={handleResend}
           />
         )}
 

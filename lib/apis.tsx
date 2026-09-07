@@ -50,6 +50,20 @@ export function usePostAuthVerifyCode() {
   });
 }
 
+export function useLogout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      localStorage.removeItem("token");
+    },
+    onSuccess: () => {
+      // پاک کردن کش همه کوئری‌ها (user، favorites، alerts و ...) تا حالت مهمان برگرده
+      queryClient.clear();
+    },
+  });
+}
+
 export function useGetUserFavorites(
   only_ids = false,
   options?: Omit<UseQueryOptions<any, Error>, "queryKey" | "queryFn">,

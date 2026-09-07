@@ -6,7 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./ui/popover";
-import { useGetUser } from "@/lib/apis";
+import { useGetUser, useLogout } from "@/lib/apis";
 import AuthModal from "./auth-modal";
 import { useState } from "react";
 import CitySelector from "./city";
@@ -20,6 +20,13 @@ export default function User() {
     isPending,
     error,
   } = useGetUser();
+
+  const logout = useLogout();
+
+  const handleLogout = () => {
+    setOpenUserMenu(false);
+    logout.mutate();
+  };
 
   const handleLinkClick = () => {
     setOpenUserMenu(false);
@@ -188,9 +195,7 @@ export default function User() {
             {/* خروج */}
             <button
               type="button"
-              onClick={() => {
-                setOpenUserMenu(false);
-              }}
+              onClick={handleLogout}
               className="
                 rounded-md
                 px-3

@@ -23,6 +23,7 @@ type Props = {
   phone: string;
   onBack: () => void;
   onSuccess?: () => void;
+  onVerify?: (code: string) => void | Promise<void>;
   onClose?: () => void;
   onResend?: () => Promise<void>;
 };
@@ -31,6 +32,7 @@ export default function OtpStep({
   phone,
   onBack,
   onSuccess,
+  onVerify,
   onClose,
   onResend,
 }: Props) {
@@ -72,7 +74,7 @@ export default function OtpStep({
   }, [canResend, isResending, onResend, setValue]);
 
   const onSubmit = async (data: FormValues) => {
-    console.log({ phone, code: data.code });
+    await onVerify?.(data.code);
     onSuccess?.();
   };
 

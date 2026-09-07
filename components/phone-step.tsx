@@ -16,7 +16,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 type Props = {
-  onNext: (phone: string) => void;
+  onNext: (phone: string) => void | Promise<void>;
   onClose?: () => void;
 };
 
@@ -41,7 +41,9 @@ export default function PhoneStep({ onNext, onClose }: Props) {
     return () => clearTimeout(t);
   }, [setFocus]);
 
-  const onSubmit = (data: FormValues) => onNext(data.phone);
+  const onSubmit = async (data: FormValues) => {
+    await onNext(data.phone);
+  };
 
   const isValid = /^09\d{9}$/.test(phoneValue);
 
