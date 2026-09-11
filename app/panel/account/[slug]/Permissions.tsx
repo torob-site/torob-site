@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Plus, 
-  Trash2, 
+import { toast } from "sonner";
+import {
+  Trash2,
   UserPlus,
   Shield,
   User,
@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { axiosClient } from "@/lib/axios";
 import { useCurrentShop } from "@/hooks/useCurrentShop";
+import PhoneStep from "@/components/phone-step";
+import OtpStep from "@/components/otp-step";
 
 interface User {
   access: string[];
@@ -69,43 +71,62 @@ export function useRemoveUser() {
   });
 }
 
-// هوک برای افزودن کاربر
+// ارسال کد تأیید از روت عمومی auth (همان ورود و ثبت‌نام)
+export function useSendAuthCode() {
+  return useMutation({
+    mutationFn: async (data: { phone: string }) => {
+      const res = await axiosClient.post(`/auth/send-code`, data);
+      return res.data;
+    },
+  });
+}
+
+// تأیید کد از روت عمومی auth — عمداً بدون ذخیره توکن تا جای صاحب فروشگاه لاگین نشود
+export function useVerifyAuthCode() {
+  return useMutation({
+    mutationFn: async (data: { phone: string; code: string }) => {
+      const res = await axiosClient.post(`/auth/verify-code`, data);
+      return res.data;
+    },
+  });
+}
+
+// افزودن عضو بعد از تأیید کد — همیشه ادمین
 export function useAddUser() {
   const queryClient = useQueryClient();
   const { currentShop } = useCurrentShop();
 
   return useMutation({
-    mutationFn: async (userData: { phone: string; name: string; is_admin: boolean }) => {
-      const { data } = await axiosClient.post(
+    mutationFn: async (data: { phone: string }) => {
+      const res = await axiosClient.post(
         `/panel/shops/${currentShop.id}/users`,
-        userData,
+        data,
       );
-      return data;
+      return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["permissions", currentShop?.id] 
+      queryClient.invalidateQueries({
+        queryKey: ["permissions", currentShop?.id]
       });
     },
   });
 }
 
-// هوک برای تغییر سطح دسترسی
-export function useUpdateUserRole() {
+// هوک برای انتقال مالکیت فروشگاه
+export function useTransferOwnership() {
   const queryClient = useQueryClient();
   const { currentShop } = useCurrentShop();
 
   return useMutation({
-    mutationFn: async ({ phone, is_admin }: { phone: string; is_admin: boolean }) => {
+    mutationFn: async (phone: string) => {
       const { data } = await axiosClient.put(
-        `/panel/shops/${currentShop.id}/users/${phone}`,
-        { is_admin },
+        `/panel/shops/${currentShop.id}/users/${phone}/transfer-ownership`,
       );
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["permissions", currentShop?.id] 
+      queryClient.invalidateQueries({
+        queryKey: ["permissions", currentShop?.id]
       });
     },
   });
@@ -114,28 +135,50 @@ export function useUpdateUserRole() {
 export default function PermissionsPage() {
   const { currentShop } = useCurrentShop();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({
-    phone: "",
-    name: "",
-    is_admin: false,
-  });
+  const [addStep, setAddStep] = useState<"phone" | "otp">("phone");
+  const [addPhone, setAddPhone] = useState("");
+  const [addCode, setAddCode] = useState("");
 
   const { data, isLoading, error } = useGetPermissions();
   const removeUser = useRemoveUser();
+  const sendAuthCode = useSendAuthCode();
+  const verifyAuthCode = useVerifyAuthCode();
   const addUser = useAddUser();
-  const updateUserRole = useUpdateUserRole();
+  const transferOwnership = useTransferOwnership();
+  const [transferTarget, setTransferTarget] = useState<User | null>(null);
 
-  const handleAddUser = () => {
-    if (!formData.phone || !formData.name) {
-      alert("لطفاً شماره موبایل و نام را وارد کنید");
-      return;
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setAddStep("phone");
+    setAddPhone("");
+    setAddCode("");
+  };
+
+  const handleSendMemberCode = async (phone: string) => {
+    try {
+      await sendAuthCode.mutateAsync({ phone });
+      setAddPhone(phone);
+      setAddCode("");
+      setAddStep("otp");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "خطا در ارسال کد تأیید");
     }
-    addUser.mutate(formData, {
-      onSuccess: () => {
-        setShowAddModal(false);
-        setFormData({ phone: "", name: "", is_admin: false });
-      },
-    });
+  };
+
+  const handleVerifyMemberCode = async (code: string) => {
+    try {
+      // اول کد از روت عمومی auth تأیید می‌شود؛ فقط اگر درست بود عضو اضافه می‌شود
+      await verifyAuthCode.mutateAsync({ phone: addPhone, code });
+      await addUser.mutateAsync({ phone: addPhone });
+      toast.success("عضو جدید با موفقیت اضافه شد");
+      closeAddModal();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "کد تأیید نامعتبر است");
+    }
+  };
+
+  const handleResendMemberCode = async () => {
+    await sendAuthCode.mutateAsync({ phone: addPhone });
   };
 
   const handleRemoveUser = (phone: string, name: string) => {
@@ -144,8 +187,16 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleToggleAdmin = (phone: string, currentIsAdmin: boolean) => {
-    updateUserRole.mutate({ phone, is_admin: !currentIsAdmin });
+  const handleTransferOwnership = async () => {
+    if (!transferTarget) return;
+    try {
+      await transferOwnership.mutateAsync(transferTarget.phone);
+      toast.success(`مالکیت فروشگاه به "${transferTarget.name || transferTarget.phone}" منتقل شد`);
+      setTransferTarget(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "خطا در انتقال مالکیت");
+      setTransferTarget(null);
+    }
   };
 
   if (!currentShop) {
@@ -272,21 +323,13 @@ export default function PermissionsPage() {
                             صاحب امتیاز
                           </span>
                         ) : isAdmin ? (
-                          <button
-                            onClick={() => handleToggleAdmin(user.phone, true)}
-                            disabled={!isOwner}
-                            className="inline-block px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 rounded-full transition hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
+                          <span className="inline-block px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 rounded-full">
                             ادمین
-                          </button>
+                          </span>
                         ) : (
-                          <button
-                            onClick={() => handleToggleAdmin(user.phone, false)}
-                            disabled={!isOwner}
-                            className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 rounded-full transition hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
+                          <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 rounded-full">
                             کاربر
-                          </button>
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -297,19 +340,34 @@ export default function PermissionsPage() {
                             <span className="text-xs text-gray-400">-</span>
                           ) : (
                             isOwner && (
-                              <button
-                                onClick={() => handleRemoveUser(user.phone, user.name)}
-                                className="
-                                  p-1.5
-                                  text-red-400 hover:text-red-600
-                                  hover:bg-red-50 dark:hover:bg-red-500/10
-                                  rounded-lg
-                                  transition
-                                "
-                                title="حذف دسترسی"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => setTransferTarget(user)}
+                                  className="
+                                    p-1.5
+                                    text-yellow-500 hover:text-yellow-600
+                                    hover:bg-yellow-50 dark:hover:bg-yellow-500/10
+                                    rounded-lg
+                                    transition
+                                  "
+                                  title="انتقال مالکیت"
+                                >
+                                  <Crown className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleRemoveUser(user.phone, user.name)}
+                                  className="
+                                    p-1.5
+                                    text-red-400 hover:text-red-600
+                                    hover:bg-red-50 dark:hover:bg-red-500/10
+                                    rounded-lg
+                                    transition
+                                  "
+                                  title="حذف دسترسی"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
                             )
                           )}
                         </div>
@@ -350,6 +408,59 @@ export default function PermissionsPage() {
           </div>
         )}
 
+        {/* مودال تأیید انتقال مالکیت */}
+        {transferTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl w-full max-w-md mx-4 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  انتقال مالکیت فروشگاه
+                </h3>
+                <button
+                  onClick={() => setTransferTarget(null)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-7">
+                آیا از انتقال مالکیت به{" "}
+                <span className="font-bold text-gray-900 dark:text-white">
+                  {transferTarget.name || "نامشخص"}
+                </span>{" "}
+                (<span dir="ltr">{transferTarget.phone}</span>) اطمینان دارید؟
+                <br />
+                <span className="text-yellow-600 dark:text-yellow-400 text-xs">
+                  بعد از انتقال، شما ادمین فروشگاه خواهید بود و مالکیت قابل بازگشت فقط توسط مالک جدید است.
+                </span>
+              </p>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleTransferOwnership}
+                  disabled={transferOwnership.isPending}
+                  className={
+                    "flex-1 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium " +
+                    "rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  }
+                >
+                  {transferOwnership.isPending ? "در حال انتقال..." : "انتقال مالکیت"}
+                </button>
+                <button
+                  onClick={() => setTransferTarget(null)}
+                  className={
+                    "px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 " +
+                    "text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition"
+                  }
+                >
+                  انصراف
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* مودال افزودن عضو */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -359,99 +470,105 @@ export default function PermissionsPage() {
                   افزودن عضو جدید
                 </h3>
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeAddModal}
                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
                 >
                   <X className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    شماره موبایل *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="
-                      w-full px-4 py-2.5 rounded-xl
-                      border border-gray-200 dark:border-gray-700
-                      bg-white dark:bg-[#0f172a]
-                      text-gray-900 dark:text-white
-                      focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10
-                      outline-none transition
-                    "
-                    placeholder="مثال: 09123456789"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    نام *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="
-                      w-full px-4 py-2.5 rounded-xl
-                      border border-gray-200 dark:border-gray-700
-                      bg-white dark:bg-[#0f172a]
-                      text-gray-900 dark:text-white
-                      focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10
-                      outline-none transition
-                    "
-                    placeholder="نام کامل"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
+              {addStep === "phone" ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      شماره موبایل *
+                    </label>
                     <input
-                      type="checkbox"
-                      checked={formData.is_admin}
-                      onChange={(e) => setFormData({ ...formData, is_admin: e.target.checked })}
-                      className="w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
+                      type="tel"
+                      inputMode="tel"
+                      dir="ltr"
+                      maxLength={11}
+                      value={addPhone}
+                      onChange={(e) => setAddPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                      className={
+                        "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 " +
+                        "bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white " +
+                        "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition"
+                      }
+                      placeholder="مثال: 09123456789"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      دسترسی ادمین
-                    </span>
-                  </label>
-                </div>
+                  </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={handleAddUser}
-                    disabled={addUser.isPending}
-                    className="
-                      flex-1 py-2.5
-                      bg-blue-500 hover:bg-blue-600
-                      text-white text-sm font-medium
-                      rounded-xl
-                      transition
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    "
-                  >
-                    {addUser.isPending ? "در حال افزودن..." : "افزودن عضو"}
-                  </button>
-                  <button
-                    onClick={() => setShowAddModal(false)}
-                    className="
-                      px-6 py-2.5
-                      bg-gray-100 hover:bg-gray-200
-                      dark:bg-gray-700 dark:hover:bg-gray-600
-                      text-gray-700 dark:text-gray-300
-                      text-sm font-medium
-                      rounded-xl
-                      transition
-                    "
-                  >
-                    انصراف
-                  </button>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => handleSendMemberCode(addPhone)}
+                      disabled={!/^09\d{9}$/.test(addPhone) || sendAuthCode.isPending}
+                      className={
+                        "flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium " +
+                        "rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      }
+                    >
+                      {sendAuthCode.isPending ? "در حال ارسال کد..." : "ارسال کد تأیید"}
+                    </button>
+                    <button
+                      onClick={closeAddModal}
+                      className={
+                        "px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 " +
+                        "text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition"
+                      }
+                    >
+                      انصراف
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    کد تأیید به شماره{" "}
+                    <span dir="ltr" className="font-medium text-gray-700 dark:text-gray-300">
+                      {addPhone}
+                    </span>{" "}
+                    ارسال شد. کد را وارد کنید:
+                  </p>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    dir="ltr"
+                    maxLength={6}
+                    value={addCode}
+                    onChange={(e) => setAddCode(e.target.value.replace(/[^0-9]/g, ""))}
+                    className={
+                      "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 " +
+                      "bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white text-center text-lg tracking-[0.4em] " +
+                      "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition"
+                    }
+                    placeholder="------"
+                  />
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => handleVerifyMemberCode(addCode)}
+                      disabled={addCode.length !== 6 || verifyAuthCode.isPending || addUser.isPending}
+                      className={
+                        "flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium "
+                        + "rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      }
+                    >
+                      {verifyAuthCode.isPending || addUser.isPending ? "در حال تأیید..." : "تأیید و افزودن"}
+                    </button>
+                    <button
+                      onClick={() => setAddStep("phone")}
+                      className={
+                        "px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 "
+                        + "text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition"
+                      }
+                    >
+                      ویرایش شماره
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
