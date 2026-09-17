@@ -11,8 +11,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { usePostUserFavorite, useGetProductAlert, usePostUserAlert, useDeleteUserAlert } from "@/lib/apis";
+import { usePostUserFavorite, useGetProductAlert, usePostUserAlert, useDeleteUserAlert, useGetUser } from "@/lib/apis";
 import { toast } from "sonner";
+import AuthModal from "./auth-modal";
 
 import "swiper/css";
 
@@ -28,11 +29,13 @@ export default function ProductCard({
 
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [alertPrice, setAlertPrice] = useState("");
   const [hasExistingAlert, setHasExistingAlert] = useState(false);
   const [existingAlertData, setExistingAlertData] = useState<any>(null);
   const [hasExistingAvailabilityAlert, setHasExistingAvailabilityAlert] = useState(false);
 
+  const { data: user } = useGetUser();
   const favoriteMutation = usePostUserFavorite();
 
   const { refetch: refetchAlert } = useGetProductAlert(
@@ -76,6 +79,11 @@ export default function ProductCard({
   };
 
   const openAlertModal = async () => {
+    if (!user?.phone) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (product.is_available === false) {
       await checkExistingAlert();
       setShowAvailabilityModal(true);
@@ -923,6 +931,8 @@ export default function ProductCard({
           </div>
         </div>
       )}
+
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </>
   );
 }

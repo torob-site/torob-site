@@ -207,7 +207,7 @@ export default function ShopLayoutClient({
   return (
     <div className="flex">
       <aside className="shrink-0 w-96">
-        <div className="dark:bg-[#212b36] border-t border-b border-[#f1f5f9] dark:border-[#15202b] space-y-6 bg-[#ffffff] dark:text-white text-black py-16">
+        <div className="dark:bg-[#212b36] h-full border-t border-b border-[#f1f5f9] dark:border-[#15202b] space-y-6 bg-[#ffffff] dark:text-white text-black py-16">
           <Breadcrumb>
             <BreadcrumbList className="text-xs px-8">
               <BreadcrumbItem>

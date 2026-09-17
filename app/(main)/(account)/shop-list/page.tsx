@@ -65,12 +65,11 @@ export default function Shops() {
   return (
     <div className="flex w-full justify-center mt-12">
       <div className="flex flex-col items-center w-full">
-
         <h1 className="dark:text-white text-[#1e293b] font-bold text-xl">
           فروشگاه‌های ثبت شده در ترب
         </h1>
 
-        <div className="flex relative mt-16 border border-[#475569] rounded-lg justify-center items-center w-80 h-12">
+        <div className="flex relative mt-16 border border-slate-200 rounded-lg justify-center items-center w-80 h-12">
           <Search
             className="absolute right-3 cursor-pointer"
             size={22}
@@ -85,7 +84,7 @@ export default function Shops() {
                 handleSearch();
               }
             }}
-            className="w-full px-10 h-12 outline-none rounded-lg"
+            className="w-full px-10 h-12 outline-none text-sm rounded-lg text-slate-700 placeholder:text-slate-400"
             placeholder="جستجوی نام فروشگاه"
           />
         </div>
@@ -94,20 +93,20 @@ export default function Shops() {
           {shops.length > 0 ? (
             shops.map((shop) => (
               <Link href={`/shop/${shop.id}/${shop.shop_name}`}>
-              <div
-                key={shop.id}
-                className="flex items-center gap-4 h-20 w-72 border rounded-lg px-5 border-[#cbd5e1] dark:border-[#475569] cursor-pointer"
-              >
-                <img
-                  className="w-12 h-12 rounded-lg"
-                  src={shop.shop_logo}
-                  alt={shop.shop_name}
-                />
+                <div
+                  key={shop.id}
+                  className="flex items-center gap-4 h-20 w-72 border rounded-lg px-5 border-[#cbd5e1] dark:border-[#475569] cursor-pointer"
+                >
+                  <img
+                    className="w-12 h-12 rounded-lg"
+                    src={shop.shop_logo}
+                    alt={shop.shop_name}
+                  />
 
-                <p className="text-sm text-[#1e293b] dark:text-[#f1f5f9]">
-                  {shop.shop_name}
-                </p>
-              </div>
+                  <p className="text-sm text-[#1e293b] dark:text-[#f1f5f9]">
+                    {shop.shop_name}
+                  </p>
+                </div>
               </Link>
             ))
           ) : (
@@ -117,13 +116,9 @@ export default function Shops() {
           )}
         </div>
 
-        <div
-          ref={loadMoreRef}
-          className="h-10 w-full"
-        />
+        <div ref={loadMoreRef} className="h-10 w-full" />
 
         {isFetchingNextPage && <InlineSpinner />}
-
       </div>
     </div>
   );

@@ -70,6 +70,7 @@ import {
 import ReportModal from "@/components/report-modal";
 import CitySelector from "@/components/city";
 import { formatPrice } from "@/lib/format";
+import AuthModal from "@/components/auth-modal";
 
 // ─────────────────────────────────────────────
 // Types
@@ -182,6 +183,8 @@ function OfferCard({
   productImage,
   expandedId,
   onToggleContact,
+  isLoggedIn,
+  onRequireAuth,
 }: {
   offer: Offer;
   index: number;
@@ -190,8 +193,19 @@ function OfferCard({
   productImage: string | null;
   expandedId: number | null;
   onToggleContact: (id: number) => void;
+  isLoggedIn: boolean;
+  onRequireAuth: () => void;
 }) {
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const handleReportClick = () => {
+    if (!isLoggedIn) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setReportModalOpen(true);
+  };
   const isExpanded = expandedId === offer.id;
   const isOffline = offer.shop.type === "OFFLINE_SHOP";
 
@@ -237,7 +251,7 @@ function OfferCard({
               <div className="min-w-0 flex-1 space-y-4">
                 <div className="flex items-center gap-3">
                   <div
-                    onClick={() => setReportModalOpen(true)}
+                    onClick={handleReportClick}
                     className="flex cursor-pointer items-center justify-center gap-1 rounded-full bg-[#f1f5f9] px-1.5 py-1.5 text-xs"
                   >
                     <img
@@ -344,7 +358,7 @@ function OfferCard({
                 <div className="mb-3 flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setReportModalOpen(true)}
+                    onClick={handleReportClick}
                     className="flex items-center gap-1 rounded-full bg-[#f1f5f9] px-2.5 py-1.5 text-xs text-[#64748b] transition hover:bg-[#e2e8f0]"
                   >
                     <Flag className="h-3.5 w-3.5" />
@@ -510,6 +524,7 @@ function OfferCard({
           productImage={productImage}
         />
       )}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );
 }
@@ -528,6 +543,7 @@ function SellersList({
   productId,
   productName,
   productImage,
+  isLoggedIn,
 }: {
   data: Offer[];
   filters: OfferFilters | null;
@@ -536,6 +552,7 @@ function SellersList({
   productId: number;
   productName: string;
   productImage: string | null;
+  isLoggedIn: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<
     "all" | "ONLINE_SHOP" | "OFFLINE_SHOP"
@@ -888,6 +905,7 @@ function SellersList({
             productImage={productImage}
             expandedId={expandedId}
             onToggleContact={toggleContact}
+            isLoggedIn={isLoggedIn}
           />
         ))}
 
@@ -940,6 +958,7 @@ function SellersList({
             expandedId={expandedId}
             productImage={productImage}
             onToggleContact={toggleContact}
+            isLoggedIn={isLoggedIn}
           />
         ))}
 
@@ -1039,6 +1058,11 @@ export default function ProductPage() {
   const [mainReportModalOpen, setMainReportModalOpen] = useState(false);
 
   const handleMainReport = () => {
+    if (!user?.phone) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (!cheapestOffer) {
       toast.error("فروشنده‌ای برای گزارش وجود ندارد");
       return;
@@ -1110,6 +1134,7 @@ export default function ProductPage() {
 
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [alertPrice, setAlertPrice] = useState("");
 
   const [hasExistingAlert, setHasExistingAlert] = useState(false);
@@ -1123,6 +1148,11 @@ export default function ProductPage() {
 
   const openAlertModal = async () => {
     if (!data) return;
+
+    if (!user?.phone) {
+      setShowAuthModal(true);
+      return;
+    }
 
     try {
       const result = await refetchProductAlert();
@@ -1702,6 +1732,7 @@ export default function ProductPage() {
                   productId={productId}
                   productName={data.name || ""}
                   productImage={data.productImages?.[0]?.url ?? null}
+                  isLoggedIn={!!user?.phone}
                 />
               )}
             </div>
@@ -2027,6 +2058,8 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </>
   );
 }

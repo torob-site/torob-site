@@ -1,3 +1,4 @@
+import { baseURL } from "@/lib/axios";
 import BusinessBackgroundClient from "./BusinessBackgroundClient";
 
 export type ApiCategory = {
@@ -8,7 +9,7 @@ export type ApiCategory = {
 };
 
 async function getCategories(): Promise<ApiCategory[]> {
-  const response = await fetch("http://localhost:3001/categories", {
+  const response = await fetch(`${baseURL}/categories`, {
     next: {
       revalidate: 3600,
     },

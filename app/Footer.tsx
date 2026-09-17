@@ -41,7 +41,7 @@ const links = [
   },
   {
     name: "پنل فروشگاه‌ها",
-    link: "/sell/login",
+    link: "/panel",
   },
   {
     name: "فرصت‌های شغلی",

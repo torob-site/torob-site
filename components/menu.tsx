@@ -1,16 +1,18 @@
 import MenuClient from "@/components/menu-client";
+import { baseURL } from "@/lib/axios";
 
 export type ApiCategory = {
   id: string;
   title: string;
   url: string;
+  product_count?: number;
   children?: ApiCategory[];
 };
 
 async function getCategories(): Promise<ApiCategory[]> {
-  const response = await fetch(`http://localhost:3001/categories`, {
+  const response = await fetch(`${baseURL}/categories`, {
     next: {
-      revalidate: 3600,
+      revalidate: 60,
     },
   });
 

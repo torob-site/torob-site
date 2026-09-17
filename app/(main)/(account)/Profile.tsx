@@ -120,7 +120,7 @@ export default function Profile() {
             لیست فروشگاه‌های ترب
           </p>
         </Link>
-        <Link href="/sell">
+        <Link href="/sell/register">
           <p className="mt-4">ثبت نام فروشگاه‌</p>
         </Link>
       </div>

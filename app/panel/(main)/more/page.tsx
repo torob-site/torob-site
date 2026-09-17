@@ -103,7 +103,7 @@ function MoreMenuContent() {
                 </Link>
 
                 <Link
-                  href="#"
+                  href="/panel/shopBillingInfo"
                   className="
                   block
                   rounded-lg
@@ -122,7 +122,7 @@ function MoreMenuContent() {
           {/* ================= مشاور فروش ================= */}
 
           <Link
-            href="#"
+            href="/panel/recommend"
             className="
             h-12
             px-4
@@ -290,28 +290,28 @@ function MoreMenuContent() {
             {isOpen("help") && (
               <div className="px-3 py-2 space-y-1">
                 <Link
-                  href="#"
+                  href="/panel/terms/partnership-conditions"
                   className="block rounded-lg bg-gray-50 px-4 py-3 text-sm"
                 >
                   شرایط همکاری
                 </Link>
 
                 <Link
-                  href="#"
+                  href="/panel/terms/tariff"
                   className="block rounded-lg bg-gray-50 px-4 py-3 text-sm"
                 >
                   تعرفه خدمات
                 </Link>
 
                 <Link
-                  href="#"
+                  href="/panel/terms/faq"
                   className="block rounded-lg bg-gray-50 px-4 py-3 text-sm"
                 >
                   پرسش‌های متداول
                 </Link>
 
                 <Link
-                  href="#"
+                  href="/panel/terms/videos"
                   className="block rounded-lg bg-gray-50 px-4 py-3 text-sm"
                 >
                   ویدیوهای آموزشی

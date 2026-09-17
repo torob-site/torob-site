@@ -19,8 +19,9 @@ import {
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useGetProductMapOffers } from "@/lib/apis";
+import { useGetProductMapOffers, useGetUser } from "@/lib/apis";
 import ReportModal from "@/components/report-modal";
+import AuthModal from "@/components/auth-modal";
 import { formatPriceNumber as formatPrice } from "@/lib/format";
 
 /* ==================== Helpers ==================== */
@@ -190,6 +191,9 @@ export default function ProductMap(props: any) {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportSeller, setReportSeller] = useState<any>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const { data: user } = useGetUser();
 
   const cardRefs = useRef<any>({});
 
@@ -234,6 +238,10 @@ export default function ProductMap(props: any) {
 
   const openReport = (seller: any, e: any) => {
     e.stopPropagation();
+    if (!user?.phone) {
+      setAuthModalOpen(true);
+      return;
+    }
     setReportSeller(seller);
     setReportModalOpen(true);
   };
@@ -583,6 +591,8 @@ export default function ProductMap(props: any) {
           }
         />
       )}
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 
       {/* ===== Contact Modal ===== */}
       {contactOpen && contactSeller && (

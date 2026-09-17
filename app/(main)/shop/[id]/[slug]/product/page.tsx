@@ -54,7 +54,7 @@ function DropdownFilter({
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 bg-[#ffffff] dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 min-w-[160px]">
+        <div className="absolute top-full right-0 mt-2 bg-[#ffffff] dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 min-w-40">
           {filter.items?.map((item) => {
             const value = String(item.value || item.slug);
             return (

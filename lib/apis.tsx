@@ -25,7 +25,7 @@ export function useGetUser() {
 }
 
 export function usePostAuthSendCode() {
-  return useMutation<any>({
+  return useMutation<any, Error, { phone: string }>({
     mutationFn: async (payload) => {
       const res = await axiosClient.post("/auth/send-code", payload);
       return res.data;
@@ -36,7 +36,7 @@ export function usePostAuthSendCode() {
 export function usePostAuthVerifyCode() {
   const queryClient = useQueryClient();
 
-  return useMutation<any>({
+  return useMutation<any, Error, { phone: string; code: string }>({
     mutationFn: async (payload) => {
       const res = await axiosClient.post("/auth/verify-code", payload);
       return res.data;

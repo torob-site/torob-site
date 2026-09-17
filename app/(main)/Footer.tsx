@@ -6,8 +6,8 @@ export default function Footer() {
       <div className="flex items-center w-full justify-between mb-6">
         <div className="flex items-center gap-20">
           <div className="flex flex-col text-sm space-y-3">
-            <Link href="/sell/login">پنل فروشگاه‌ها</Link>
-            <Link href="/sell">ثبت‌ فروشگاه</Link>
+            <Link href="/panel">پنل فروشگاه‌ها</Link>
+            <Link href="/sell/register">ثبت‌ فروشگاه</Link>
             <Link href="/shop-list">فروشگاه‌ها</Link>
             <Link href="/user/tickets"> پیگیری سفارش از فروشگاه </Link>
           </div>

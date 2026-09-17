@@ -14,11 +14,16 @@ import { useCurrentShop } from "@/hooks/useCurrentShop";
 import { usePatchShopStatus } from "@/lib/apis";
 
 const pageTitles: Record<string, string> = {
-    "/panel/account": "حساب کاربری",
-    "/panel/instagram": "اتصال به اینستاگرام",
-    "/panel/products": "محصولات",
-    "/panel/transactions": "مالی",
-    "/panel/support": "پشتیبانی",
+  "/panel/account": "حساب کاربری",
+  "/panel/instagram": "اتصال به اینستاگرام",
+  "/panel/products": "محصولات",
+  "/panel/transactions": "مالی",
+  "/panel/support": "پشتیبانی",
+  "/panel/shopBillingInfo": "مشخصات فاکتور رسمی",
+  "/panel/terms/partnership-conditions": "شرایط همکاری",
+  "/panel/terms/tariff": "تعرفه خدمات",
+  "/panel/terms/faq": "پرسش‌های متداول",
+  "/panel/terms/videos": "ویدیوهای آموزشی",
 };
 
 export default function PanelHeader() {
