@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   useGetCities,
@@ -17,7 +25,6 @@ export default function RegisterOfflinePage() {
   const [hasLicense, setHasLicense] = useState<boolean | null>(null);
 
   const { data: cities = [], isPending: loadingCities } = useGetCities();
-
   const { data: businessTypes = [], isPending: loadingBusinessTypes } =
     useGetAllBusinessTypes();
 
@@ -49,10 +56,8 @@ export default function RegisterOfflinePage() {
 
       city_id: cityId!,
 
-      // مثلاً biz-5
       business_type: businessType,
 
-      // true یا false
       has_license: hasLicense!,
     });
   };
@@ -98,7 +103,7 @@ export default function RegisterOfflinePage() {
           </div>
 
           {/* =====================================================
-              City
+              City (shadcn Select)
           ====================================================== */}
 
           <div className="flex flex-col gap-2">
@@ -109,30 +114,31 @@ export default function RegisterOfflinePage() {
             {loadingCities ? (
               <div className="h-11 w-full animate-pulse rounded-lg bg-[#f1f5f9]" />
             ) : (
-              <div className="relative">
-                <select
-                  value={cityId ?? ""}
-                  onChange={(e) =>
-                    setCityId(e.target.value ? Number(e.target.value) : null)
-                  }
-                  className="h-11 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white px-4 pl-10 text-[14px] text-[#1e293b] outline-none transition focus:border-[#d73948] focus:ring-1 focus:ring-[#d73948]"
-                >
-                  <option value="">انتخاب شهر</option>
+              <Select
+                value={cityId !== null ? String(cityId) : undefined}
+                onValueChange={(value) => setCityId(Number(value))}
+              >
+                <SelectTrigger className="h-11 w-full rounded-lg border-[#e2e8f0] bg-white px-4 text-[14px] text-[#1e293b] data-[placeholder]:text-[#cbd5e1] focus:border-[#d73948] focus:ring-1 focus:ring-[#d73948] focus-visible:ring-1 focus-visible:ring-[#d73948]">
+                  <SelectValue placeholder="انتخاب شهر" />
+                </SelectTrigger>
 
+                <SelectContent position="popper" className="max-h-72">
                   {cities.map((city: any) => (
-                    <option key={city.id} value={city.id}>
+                    <SelectItem
+                      key={city.id}
+                      value={String(city.id)}
+                      className="text-[14px]"
+                    >
                       {city.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-
-                <ChevronDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-              </div>
+                </SelectContent>
+              </Select>
             )}
           </div>
 
           {/* =====================================================
-              Business Type
+              Business Type (shadcn Select)
           ====================================================== */}
 
           <div className="flex flex-col gap-2">
@@ -143,23 +149,23 @@ export default function RegisterOfflinePage() {
             {loadingBusinessTypes ? (
               <div className="h-11 w-full animate-pulse rounded-lg bg-[#f1f5f9]" />
             ) : (
-              <div className="relative">
-                <select
-                  value={businessType}
-                  onChange={(e) => setBusinessType(e.target.value)}
-                  className="h-11 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-white px-4 pl-10 text-[14px] text-[#1e293b] outline-none transition focus:border-[#d73948] focus:ring-1 focus:ring-[#d73948]"
-                >
-                  <option value="">انتخاب حوزه فعالیت</option>
+              <Select value={businessType || undefined} onValueChange={setBusinessType}>
+                <SelectTrigger className="h-11 w-full rounded-lg border-[#e2e8f0] bg-white px-4 text-[14px] text-[#1e293b] data-[placeholder]:text-[#cbd5e1] focus:border-[#d73948] focus:ring-1 focus:ring-[#d73948] focus-visible:ring-1 focus-visible:ring-[#d73948]">
+                  <SelectValue placeholder="انتخاب حوزه فعالیت" />
+                </SelectTrigger>
 
+                <SelectContent position="popper" className="max-h-72">
                   {businessTypes.map((business: any) => (
-                    <option key={business.value} value={business.value}>
+                    <SelectItem
+                      key={business.value}
+                      value={business.value}
+                      className="text-[14px]"
+                    >
                       {business.label}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-
-                <ChevronDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-              </div>
+                </SelectContent>
+              </Select>
             )}
           </div>
 
